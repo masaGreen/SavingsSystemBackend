@@ -1,16 +1,17 @@
 package com.masaGreen.presta.repositories;
 
+
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import com.masaGreen.presta.models.entities.Customer;
 
-import com.masaGreen.presta.models.Customer;
+public interface CustomerRepository extends JpaRepository<Customer,String>{
 
-public interface CustomerRepository extends JpaRepository<Customer, Long>{
+    boolean existsByIdNumber(String idNumber);
 
-    void deleteByMemberNumber(long memberNumber);
+    Optional<Customer> findByIdNumber(String idNumber);
 
-    Optional<Customer> findByMemberNumber(long memberNumber);
     
 }

@@ -1,4 +1,4 @@
-package com.masaGreen.presta.dtos.userRequestsdto;
+package com.masaGreen.presta.dtos.customer;
 
 
 import jakarta.validation.constraints.Email;
@@ -22,7 +22,5 @@ public class CustomerUpdateDto {
     @Email(message = "invalid email")
     private String email;
 
-    @NotNull(message = "memberNumber must be provided")
-    private long memberNumber;
 
 }
