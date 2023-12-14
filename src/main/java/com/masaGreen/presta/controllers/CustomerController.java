@@ -70,7 +70,7 @@ public class CustomerController {
                     content = @Content(examples = @ExampleObject(value = "{'message': 'customer not found'}"))),
 
     })
-    @GetMapping("/findByMemberNumber/{idNumber}")
+    @GetMapping("/findByIdNumber/{idNumber}")
     private ResponseEntity<CustomerDTO> findCustomerByIdNumber(@PathVariable String idNumber){
         return new ResponseEntity<>(customerService.findByIdNumber(idNumber), HttpStatus.OK);
     }

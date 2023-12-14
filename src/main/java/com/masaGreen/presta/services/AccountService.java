@@ -9,6 +9,7 @@ import com.masaGreen.presta.models.entities.Account;
 import com.masaGreen.presta.models.entities.AccountType;
 import com.masaGreen.presta.models.entities.Customer;
 import com.masaGreen.presta.models.entities.Transaction;
+import com.masaGreen.presta.models.enums.TransactionMedium;
 import com.masaGreen.presta.models.enums.TransactionType;
 import com.masaGreen.presta.repositories.AccountRepository;
 import com.masaGreen.presta.repositories.TransactionsRepository;
@@ -17,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.Random;
 import java.util.Set;
 
@@ -43,11 +43,19 @@ public class AccountService {
 
         Account account = new Account();
         account.setAccountType(accountType);
-        // assumes that for customer to create account they must deposit 100
-        account.setBalance(new BigDecimal(100));
+        // must deposit the min balance for their account type
+        account.setBalance(accountType.getMinimumBalance());
         account.setCustomer(customer);
         account.setAccountNumber(accountNumber);
         Account createdAccount = accountRepository.save(account);
+        //update the first transaction by that account as a deposit
+        Transaction transaction = new Transaction();
+        transaction.setAccount(createdAccount);
+        transaction.setAmountTransacted(accountType.getMinimumBalance());
+        transaction.setTransactionMedium(TransactionMedium.WALK_IN);
+        transaction.setTransactionType(TransactionType.DEPOSIT);
+        
+        transactionsRepository.save(transaction);
 
 
         return new AccountCreationResDTO(createdAccount.getId(), createdAccount.getAccountNumber(), createdAccount.getAccountType());

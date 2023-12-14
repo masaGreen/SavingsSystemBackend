@@ -32,7 +32,7 @@ public class TransactionsService {
         Account account = accountService.findByAccountNumber(createTransactionDTO.accountNumber());
         //confirm customers pin
         String actualPin = createTransactionDTO.pin() + account.getCustomer().getPinEncryption();
-        if(account.getCustomer().getPin().equals(actualPin)){
+        if(!account.getCustomer().getPin().equals(actualPin)){
             throw new WrongPinException("wrong pin");
         }
 
