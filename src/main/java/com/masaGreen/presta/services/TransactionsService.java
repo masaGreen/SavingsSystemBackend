@@ -1,117 +1,100 @@
 package com.masaGreen.presta.services;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.masaGreen.presta.ExceptionsHandling.exceptions.WrongPinException;
 import org.springframework.stereotype.Service;
 
-import com.masaGreen.presta.models.Customer;
-import com.masaGreen.presta.models.Transaction;
+import com.masaGreen.presta.ExceptionsHandling.exceptions.InsufficientFundsException;
+import com.masaGreen.presta.dtos.transactions.CreateTransactionDTO;
+import com.masaGreen.presta.models.entities.Account;
+import com.masaGreen.presta.models.entities.Transaction;
+import com.masaGreen.presta.models.enums.TransactionMedium;
+import com.masaGreen.presta.models.enums.TransactionType;
+import com.masaGreen.presta.repositories.AccountRepository;
 import com.masaGreen.presta.repositories.TransactionsRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class TransactionsService {
-    @Autowired
-    private TransactionsRepository transactionsRepository;
-    @Autowired
-    private CustomerService customerService;
 
-    
-    public TransactionsService(TransactionsRepository transactionsRepository2, CustomerService customerService2) {
-    }
+    private final TransactionsRepository transactionsRepository;
+
+    private final AccountService accountService;
+    private final AccountRepository accountRepository;
+
     @Transactional
-    public Transaction saveDepositTransaction(Transaction transaction) {
-
-    //find  the last transaction by this memberNumber 
-    //if there is one update their savings amount and save the 
-    // transaction else save it as their first transaction
-
-       List<Transaction> transactions = transactionsRepository.findAllByMemberNumber(transaction.getMemberNumber());
-       
-       if(transactions.size() > 0){
-        Collections.reverse(transactions);
-        Transaction lastTransaction = transactions.get(0);
-        transaction.setCurrentAmount(lastTransaction.getCurrentAmount().add(transaction.getAmount()));
-        return transactionsRepository.save(transaction);
-        // transaction.incrementBalance(lastTransaction.getAmount());
-       } else{
-        transaction.setCurrentAmount(transaction.getAmount());
-        return transactionsRepository.save(transaction);
-       }
-        
-    
-       
-    }
-    @Transactional
-    public Transaction saveWithdrawTransaction(Transaction transaction) {
-        //to withdraw a member need to have met certain conditions 
-        //i have implemented 1, namely must have saved more than the withdrawable amount 
-        List<Transaction> transactions = transactionsRepository.findAllByMemberNumber(transaction.getMemberNumber());
-       
-        if(transactions.size() > 0){
-            Collections.reverse(transactions);
-            Transaction lastTransaction = transactions.get(0);
-            if(lastTransaction.getCurrentAmount().compareTo(transaction.getAmount()) > 0){
-
-                transaction.setCurrentAmount(lastTransaction.getCurrentAmount().subtract(transaction.getAmount()));
-                return transactionsRepository.save(transaction);
-            }else{
-                return null;
-            }
-        
-        } else{
-            return null;
-       }
-        
-    }
-    public BigDecimal getSingleMemberTotalSavings(String memberNumber) {
-
-
-        //query for the latest transaction and check the current savings Amount ;
-        //take into account the not had transactions member
-         List<Transaction> transactions = transactionsRepository.findAllByMemberNumber(Long.parseLong(memberNumber));
-         if(transactions.size() > 0){
-            Collections.reverse(transactions);
-            Transaction latestTransaction = transactions.get(0);
-            return latestTransaction.getCurrentAmount();
-        } else {
-            return BigDecimal.ZERO;
-        } 
-}
-    public BigDecimal getAllMembersTotalSavings(){
-        //total sum of every member latest transaction current savings amount
-        List<Customer> customers = customerService.getAllCustomers();
-              
-        if(customers.size() > 1){
-            List<Long> memberNumbers = customers.stream().map(customer -> customer.getMemberNumber()).collect(Collectors.toList());
-            List<BigDecimal> savings = new ArrayList<>();
-            for(int i = 0; i<memberNumbers.size(); i++){
-                savings.add(getSingleMemberTotalSavings(String.valueOf(memberNumbers.get(i))));
-                
-            }
-            BigDecimal total = savings.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
-         
-                       
-            return total;
-        }else{
-            Customer customer = customers.get(0);
-           
-            return getSingleMemberTotalSavings(String.valueOf(customer.getMemberNumber()));
-          
+    public String createTransaction(CreateTransactionDTO createTransactionDTO) {
+        // find account ,not found throw an error
+        Account account = accountService.findByAccountNumber(createTransactionDTO.accountNumber());
+        //confirm customers pin
+        String actualPin = createTransactionDTO.pin() + account.getCustomer().getPinEncryption();
+        if(account.getCustomer().getPin().equals(actualPin)){
+            throw new WrongPinException("wrong pin");
         }
+
+        Transaction transaction = new Transaction();
+
+        BigDecimal amount = new BigDecimal(createTransactionDTO.amount());
+
+        if (createTransactionDTO.transactionType().equals(TransactionType.DEPOSIT.getDesc())) {
+
+            transaction.setTransactionType(TransactionType.DEPOSIT);
+            
+            //update account balance
+            account.setBalance(
+                    (account.getBalance().add(amount)).subtract(new BigDecimal(createTransactionDTO.transactionCharge())));
+
+        }
+        if (createTransactionDTO.transactionType().equals(TransactionType.WITHDRAWAL.getDesc())) {
+            // check if the current amount is sufficient to satisfy the withdrawal
+
+            if (account.getBalance().compareTo(
+                    amount.add(new BigDecimal(100).add(new BigDecimal(createTransactionDTO.transactionCharge())))) >= 0) {
+                throw new InsufficientFundsException("account balance is insufficient");
+            } else {
+                transaction.setTransactionType(TransactionType.WITHDRAWAL);
+                //update account balance
+                account.setBalance(
+                        (account.getBalance().subtract(amount)).subtract(new BigDecimal(createTransactionDTO.transactionCharge())));
+            }
+
+        }
+
+        // save the transaction
+        transaction.setAmountTransacted(amount);
+        transaction.setAccount(account);
+        transaction.setTransactionCharge(Double.parseDouble(createTransactionDTO.transactionCharge()));
+        transaction.setTransactionMedium(TransactionMedium.stringToEnum(createTransactionDTO.transactionMedium()));
+        Transaction createdTransaction = transactionsRepository.save(transaction);
+        // update transactions for the account
+
+        Set<Transaction> transactions = account.getTransactions();
+        transactions.add(createdTransaction);
+        account.setTransactions(transactions);
+        accountRepository.save(account);
+
+               
+
+        return "transaction completed successfully";
+
     }
 
-    public List<Transaction> getAllTransactions(){
+
+    public List<Transaction> getAllTransactions() {
         return transactionsRepository.findAll();
     }
-    public List<Transaction> getAllTransactionsByMember(String memberNumber){
-        return transactionsRepository.findAllByMemberNumber(Long.parseLong(memberNumber));
+
+    public List<Transaction> getAllTransactionsByCustomer(String idNumber) {
+        return transactionsRepository.findAllTransactionsByCustomerIdNumber(idNumber);
     }
-    
+    public List<Transaction> getAllTRansactionsByAccountNumber(String accountNumber){
+        return transactionsRepository.findAllTransactionsByAccountNumber(accountNumber);
+    }
+
 }

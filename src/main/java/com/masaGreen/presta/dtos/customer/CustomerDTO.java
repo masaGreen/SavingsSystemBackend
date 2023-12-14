@@ -20,12 +20,15 @@ public class CustomerDTO {
    
     private String email;
 
+    private String pin;
+
     public CustomerDTO(Customer customer){
         this.id = customer.getId();
         this.firstName = customer.getFirstName();
         this.lastName = customer.getLastName();
         this.phoneNumber=customer.getPhoneNumber();
         this.email = customer.getEmail();
+        this.pin = customer.getPin();
         
     }
 }

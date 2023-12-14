@@ -1,11 +1,12 @@
 package com.masaGreen.presta.controllers;
 
-import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.masaGreen.presta.models.entities.AccountType;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,13 +16,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.masaGreen.presta.dtos.responseDtos.CollectionResDto;
-import com.masaGreen.presta.dtos.responseDtos.ResponseMessageDto;
-import com.masaGreen.presta.dtos.responseDtos.SavingsAmountResDto;
-import com.masaGreen.presta.dtos.userRequestsdto.TransactionReqDto;
-import com.masaGreen.presta.models.SavingsProduct;
-import com.masaGreen.presta.models.Transaction;
-import com.masaGreen.presta.services.SavingsProductsService;
+
+import com.masaGreen.presta.dtos.transactions.CreateTransactionDTO;
+import com.masaGreen.presta.models.entities.Transaction;
 import com.masaGreen.presta.services.TransactionsService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,180 +26,73 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/v1/transactions")
 @Slf4j
-@Tag(name="Transactions" , description="Manages all transactions")
+@Tag(name = "Transactions", description = "Manages all transactions")
+@RequiredArgsConstructor
 public class TransactionController {
-    @Autowired
-    private TransactionsService transactionsService;
-    @Autowired
-    private SavingsProductsService savingsProductsService;
 
-    @PostMapping("/deposit")
-     @Operation(
-        summary = "saves a deposit type of transaction"
-        
-    )
-    
+    private final TransactionsService transactionsService;
+
+
+    @Operation(summary = "register a new transaction")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Successfully saved"), 
-        @ApiResponse(responseCode = "501", description = "Unsuccessful transaction"),
-        @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "201", description = "transaction registered successfully",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = String.class))}),
+            @ApiResponse(responseCode = "404", description = "account to initiating transaction not found",
+                    content = @Content(examples = @ExampleObject(value = "{'message': 'incorrect account number provided'}"))),
+
     })
-    private ResponseEntity<?> createDepositTransaction(@RequestBody @Valid TransactionReqDto transactionReqDto){
-        
-        
-        Optional<SavingsProduct> savingsProduct = savingsProductsService.findBySavingsType(transactionReqDto.getSavingsType());
+    @PostMapping("/create-transaction")
+    public ResponseEntity<String> createDepositTransaction(@RequestBody @Valid CreateTransactionDTO createDepositTransactionDTO) {
 
-        Transaction transaction = Transaction.builder()
-                                    .memberNumber(transactionReqDto.getMemberNumber())
-                                    .methodOfPayment(transactionReqDto.getMethodOfPayment())
-                                    .amount(transactionReqDto.getAmount())
-                                    .date(new Date())
-                                    .savingsProduct(savingsProduct.get())
-                                    .build();
-
-        try {
-            Transaction savedTransaction = transactionsService.saveDepositTransaction(transaction);
-            if(transaction != null){
-                return new ResponseEntity<>(savedTransaction, HttpStatus.CREATED);
-            }else{
-                return new ResponseEntity<>(ResponseMessageDto.builder().message("Transacation unsuccessful").build(), HttpStatus.NOT_IMPLEMENTED);
-            }
-        } catch (Exception e) {
-
-            log.error(e.getMessage(), e);
-            return new ResponseEntity<>(ResponseMessageDto.builder().message("Internal server error, try later").build(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-    @PostMapping("/withdraw")
-    @Operation(
-        summary = "saves a withdrawal type of transaction"
-        
-    )
-    
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Successfully saved"), 
-        @ApiResponse(responseCode = "501", description = "Unsuccessful transaction"),
-        @ApiResponse(responseCode = "500", description = "Internal server error")
-    })
-    private ResponseEntity<?> createWithdrawTransaction(@RequestBody @Valid TransactionReqDto transactionReqDto){
-        SavingsProduct savingsProduct = SavingsProduct.builder()
-                                            .date(new Date())
-                                            .savingsType(transactionReqDto.getSavingsType())
-                                            .build();
-
-        Transaction transaction = Transaction.builder()
-                                    .memberNumber(transactionReqDto.getMemberNumber())
-                                    .methodOfPayment(transactionReqDto.getMethodOfPayment())
-                                    .amount(transactionReqDto.getAmount())
-                                    
-                                    .date(new Date())
-                                    .savingsProduct(savingsProduct)
-                                    .build();
-
-        try {
-            Transaction savedTransaction = transactionsService.saveWithdrawTransaction(transaction);
-            
-            if(savedTransaction != null){
-               
-                return new ResponseEntity<>(savedTransaction, HttpStatus.CREATED);
-            }else{
-                return new ResponseEntity<>(ResponseMessageDto.builder().message("Transacation unsuccessful").build(), HttpStatus.NOT_IMPLEMENTED);
-            }
-        } catch (Exception e) {
-
-            log.error(e.getMessage(), e);
-            return new ResponseEntity<>(ResponseMessageDto.builder().message("Internal server error, try later").build(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return new ResponseEntity<>(transactionsService.createTransaction(createDepositTransactionDTO), HttpStatus.CREATED);
     }
 
-    @GetMapping("/totalSavings/{memberNumber}")
-    @Operation(
-        summary = "uses memberNumber to track totalSavings for the member"
-        
-    )
-    
+    @Operation(summary = "fetches all transactions by a customer")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Successfully retrieved"), 
-         @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "200", description = "transactions fetched  successfully",
+                    content = {@Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = Transaction.class)))}),
+            @ApiResponse(responseCode = "404", description = "customer not found",
+                    content = @Content(examples = @ExampleObject(value = "{'message': 'customer not found'}"))),
+
     })
-    private ResponseEntity<?> getTotalSavingsPerMember(@PathVariable String memberNumber){
-        try {
-            BigDecimal totalMemberSavings = transactionsService.getSingleMemberTotalSavings(memberNumber);
-            return new ResponseEntity<>(SavingsAmountResDto.builder().totalSavings(totalMemberSavings).build(), HttpStatus.OK); 
-        } catch (Exception e) {
-            
-            log.error(e.getMessage(), e);
-            return new ResponseEntity<>(ResponseMessageDto.builder().message("Internal server error, try later").build(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    @GetMapping("/allTransactions-by-customer/{idNumber}")
+        private ResponseEntity<List<Transaction>> getAllTransactionsByCustomer(@PathVariable String idNumber) {
+        return new ResponseEntity<>(transactionsService.getAllTransactionsByCustomer(idNumber), HttpStatus.OK);
     }
-     @GetMapping("/totalSavings")
-     @Operation(
-        summary = "tracks total savings by all members"
-        
-    )
-    
+
+
+    @Operation(summary = "fetches all transactions ")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Successfully retrieved"), 
-        @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "200", description = "transactions fetched  successfully",
+                    content = {@Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = Transaction.class)))}),
+
     })
-    private ResponseEntity<?> getTotalMemberSavings(){
-        try {
-             BigDecimal totalMemberSavings = transactionsService.getAllMembersTotalSavings();
-            return new ResponseEntity<>(SavingsAmountResDto.builder().totalSavings(totalMemberSavings).build(), HttpStatus.OK); 
-        } catch (Exception e) {
-            
-            log.error(e.getMessage(), e);
-            return new ResponseEntity<>(ResponseMessageDto.builder().message("Internal server error, try later").build(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    @GetMapping("/all-transactions")
+    private ResponseEntity<List<Transaction>> getAllTransactions() {
+        return new ResponseEntity<>(transactionsService.getAllTransactions(), HttpStatus.OK);
     }
-    @GetMapping
-    @Operation(
-        summary = "fetches all transactions"
-        
-    )
-    
+    @Operation(summary = "fetches all transactions by an accountNumber")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Successfully fetched"), 
-   
-        @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "200", description = "transactions fetched  successfully",
+                    content = {@Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = Transaction.class)))}),
+            @ApiResponse(responseCode = "404", description = "incorrect account number",
+                    content = @Content(examples = @ExampleObject(value = "{'message': 'incorrect account number'}"))),
+
     })
-    private ResponseEntity<?> getAllTransactions(){
-        try {
-            List<Transaction> transactions = transactionsService.getAllTransactions();
-            return new ResponseEntity<>(CollectionResDto.builder().data(transactions).build(), HttpStatus.OK); 
-        } catch (Exception e) {
-            
-            log.error(e.getMessage(), e);
-            return new ResponseEntity<>(ResponseMessageDto.builder().message("Internal server error, try later").build(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    @GetMapping("/all-transactions-by-accountNumber/{accountNumber}")
+       private ResponseEntity<List<Transaction>> getAllTransactionsByAccountNumber(@PathVariable String accountNumber) {
+        return new ResponseEntity<>(transactionsService.getAllTRansactionsByAccountNumber(accountNumber), HttpStatus.OK);
     }
-    @GetMapping("/{memberNumber}")
-    @Operation(
-        summary = "uses memberNumber to fetch all  transactions by the member "
-        
-    )
-    
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Successfully fetched"), 
-    
-        @ApiResponse(responseCode = "500", description = "Internal server error")
-    })
-    
-    private ResponseEntity<?> getAllTransactionsByMember(@PathVariable String memberNumber){
-        try {
-            List<Transaction> transactions = transactionsService.getAllTransactionsByMember(memberNumber);
-            return new ResponseEntity<>(CollectionResDto.builder().data(transactions).build(), HttpStatus.OK); 
-        } catch (Exception e) {
-            
-            log.error(e.getMessage(), e);
-            return new ResponseEntity<>(ResponseMessageDto.builder().message("Internal server error, try later").build(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-   
-    
+
+
 }

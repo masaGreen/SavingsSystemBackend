@@ -26,7 +26,7 @@ public class Customer extends BaseEntity{
    
     private String lastName;
   
-    
+    @Column(unique = true)
     private String idNumber;
     
     private String phoneNumber;

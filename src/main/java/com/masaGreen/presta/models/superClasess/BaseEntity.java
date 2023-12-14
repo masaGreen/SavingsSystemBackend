@@ -3,6 +3,7 @@ package com.masaGreen.presta.models.superClasess;
 import java.time.Instant;
 import java.util.UUID;
 
+import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
 import lombok.AllArgsConstructor;
@@ -16,6 +17,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class BaseEntity {
+    @Id
     private String id;
 
     private Instant createdAt;
@@ -23,9 +25,12 @@ public class BaseEntity {
     private Instant updatedAt;
 
     @PrePersist
-    private void generateId(){
+    private void generate(){
         if(id == null){
             id = UUID.randomUUID().toString();
+        }
+        if(createdAt ==  null){
+            createdAt = Instant.now();
         }
     }
 }

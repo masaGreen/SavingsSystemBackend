@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Configuration;
 
 @OpenAPIDefinition(
         info = @Info(
-                title = "OpenApi Docs for Savings System",
-                description = "OpenApi Docs for Savings System",
+                title = "Banking Management System",
+                description = "OpenApi Docs for Banking Management System",
                 termsOfService="link to terms of service",
                 contact = @Contact(email = "davidmachariamj@gmail.com")
         ),

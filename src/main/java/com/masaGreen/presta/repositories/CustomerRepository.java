@@ -13,5 +13,4 @@ public interface CustomerRepository extends JpaRepository<Customer,String>{
 
     Optional<Customer> findByIdNumber(String idNumber);
 
-    
 }
