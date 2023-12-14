@@ -1,10 +1,9 @@
 package com.masaGreen.presta.repositories;
 
-import java.util.Optional;
-
+import com.masaGreen.presta.models.entities.AccountType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.masaGreen.presta.models.entities.AccountType;
+import java.util.Optional;
 
 public interface AccountTypeRepository extends JpaRepository<AccountType, String> {
 

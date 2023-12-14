@@ -1,17 +1,15 @@
 package com.masaGreen.presta.services;
 
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-
 import com.masaGreen.presta.dtos.accountType.CreateAccountTypeDTO;
 import com.masaGreen.presta.dtos.accountType.EditAccountType;
 import com.masaGreen.presta.models.entities.AccountType;
 import com.masaGreen.presta.repositories.AccountTypeRepository;
-
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor

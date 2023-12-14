@@ -3,7 +3,6 @@ package com.masaGreen.presta.annotations;
 import com.masaGreen.presta.validators.ProfanityValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
-import jakarta.validation.constraints.NotNull;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

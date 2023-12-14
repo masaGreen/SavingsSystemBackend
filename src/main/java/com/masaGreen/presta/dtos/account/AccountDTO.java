@@ -1,12 +1,12 @@
 package com.masaGreen.presta.dtos.account;
 
-import java.math.BigDecimal;
-import java.util.Set;
-
 import com.masaGreen.presta.models.entities.Account;
 import com.masaGreen.presta.models.entities.AccountType;
 import com.masaGreen.presta.models.entities.Customer;
 import com.masaGreen.presta.models.entities.Transaction;
+
+import java.math.BigDecimal;
+import java.util.Set;
 
 public class AccountDTO
    {

@@ -1,11 +1,10 @@
 package com.masaGreen.presta.repositories;
 
 
-import java.util.Optional;
-
+import com.masaGreen.presta.models.entities.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.masaGreen.presta.models.entities.Customer;
+import java.util.Optional;
 
 public interface CustomerRepository extends JpaRepository<Customer,String>{
 

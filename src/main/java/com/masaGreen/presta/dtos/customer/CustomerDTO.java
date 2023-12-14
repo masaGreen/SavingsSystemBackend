@@ -1,7 +1,6 @@
 package com.masaGreen.presta.dtos.customer;
 
 import com.masaGreen.presta.models.entities.Customer;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
