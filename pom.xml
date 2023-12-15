@@ -62,6 +62,20 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.liquibase</groupId>
+				<artifactId>liquibase-maven-plugin</artifactId>
+				<version>${liquibase.version}</version>
+					...
+				<configuration>
+					...
+					<driver>org.h2.Driver</driver>
+					<url>jdbc:h2:file:./target/h2db/db/presta</url>
+					<username>presta</username>
+					<password />
+					<outputChangeLogFile>src/main/resources/liquibase-outputChangeLog.xml</outputChangeLogFile>
+				</configuration>
+				</plugin>
+			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
