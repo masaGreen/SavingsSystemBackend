@@ -23,6 +23,7 @@ import java.util.List;
 @RequestMapping("/account-type")
 @RequiredArgsConstructor
 @Tag(name="Account-Type", description = "manages account-types being offered")
+//only stuff
 public class AccountTypeController {
     
     private final AccountTypeService accountTypeService;

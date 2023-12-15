@@ -7,7 +7,7 @@ import com.masaGreen.presta.dtos.transactions.BalanceDTO;
 import com.masaGreen.presta.dtos.transactions.BalanceInquiryDTO;
 import com.masaGreen.presta.models.entities.Account;
 import com.masaGreen.presta.models.entities.AccountType;
-import com.masaGreen.presta.models.entities.Customer;
+import com.masaGreen.presta.models.entities.AppUser;
 import com.masaGreen.presta.models.entities.Transaction;
 import com.masaGreen.presta.models.enums.TransactionMedium;
 import com.masaGreen.presta.models.enums.TransactionType;
@@ -15,6 +15,7 @@ import com.masaGreen.presta.repositories.AccountRepository;
 import com.masaGreen.presta.repositories.TransactionsRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,17 +26,17 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AccountService {
     private final AccountRepository accountRepository;
-    private final CustomerService customerService;
+    private final AppUserService appUserService;
     private final AccountTypeService accountTypeService;
     private final TransactionsRepository transactionsRepository;
-
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
 
     public AccountCreationResDTO saveAccount(CreateAccountDTO createAccountDTO) {
-        //check if customer exists or throw an exception
-        Customer customer = customerService.findCustomerById(createAccountDTO.customerId());
-        //check if customer already has that accountType or throw an exception
+        //check if appUser exists or throw an exception
+        AppUser appUser = appUserService.findAppUserById(createAccountDTO.appUserId());
+        //check if appUser already has that accountType or throw an exception
         AccountType accountType = accountTypeService.findByAccountTypeByName(createAccountDTO.accountType());
 
 
@@ -45,7 +46,7 @@ public class AccountService {
         account.setAccountType(accountType);
         // must deposit the min balance for their account type
         account.setBalance(accountType.getMinimumBalance());
-        account.setCustomer(customer);
+        account.setAppUser(appUser);
         account.setAccountNumber(accountNumber);
         Account createdAccount = accountRepository.save(account);
         //update the first transaction by that account as a deposit
@@ -63,16 +64,19 @@ public class AccountService {
     }
 
 
-    public BalanceDTO getCustomerAccountBalance(BalanceInquiryDTO balanceInquiryDTO) {
+    public BalanceDTO getAppUserAccountBalance(BalanceInquiryDTO balanceInquiryDTO) {
         //decrypt the pin from how the client encrypted it using a secret key
-        //check if the customer exists or throw an exception
-        Customer customer = customerService.findCustomerById(balanceInquiryDTO.customerId());
+        //check if the appUser exists or throw an exception
+        AppUser appUser = appUserService.findAppUserById(balanceInquiryDTO.appUserId());
         //confirm pin is right
-        if (!customer.getPin().equals(balanceInquiryDTO.pin() + customer.getPinEncryption())) {
+
+        if (!passwordEncoder.matches(
+                (balanceInquiryDTO.pin() + appUser.getPinEncryption()), appUser.getPin())
+             ){
             throw new WrongPinException("invalid pin");
         }
 
-        Set<Account> accounts = customer.getAccounts();
+        Set<Account> accounts = appUser.getAccounts();
         if (accounts.isEmpty()) throw new EntityNotFoundException("no account found");
 
         var account = accounts.stream()
@@ -93,9 +97,9 @@ public class AccountService {
 
     }
 
-    public BalanceDTO getAllCustomersTotalSavings() {
+    public BalanceDTO getAllAppUsersTotalSavings() {
 
-        return new BalanceDTO(accountRepository.findTotalCustomerSavings());
+        return new BalanceDTO(accountRepository.findTotalAppUserSavings());
 
 
     }

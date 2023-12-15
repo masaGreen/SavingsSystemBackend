@@ -43,18 +43,18 @@ public class TransactionController {
         return new ResponseEntity<>(transactionsService.createTransaction(createDepositTransactionDTO), HttpStatus.CREATED);
     }
 
-    @Operation(summary = "fetches all transactions by a customer")
+    @Operation(summary = "fetches all transactions by a AppUser")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "transactions fetched  successfully",
                     content = {@Content(mediaType = "application/json",
                             array = @ArraySchema(schema = @Schema(implementation = Transaction.class)))}),
-            @ApiResponse(responseCode = "404", description = "customer not found",
-                    content = @Content(examples = @ExampleObject(value = "{'message': 'customer not found'}"))),
+            @ApiResponse(responseCode = "404", description = "AppUser not found",
+                    content = @Content(examples = @ExampleObject(value = "{'message': 'AppUser not found'}"))),
 
     })
-    @GetMapping("/allTransactions-by-customer/{idNumber}")
-        private ResponseEntity<List<Transaction>> getAllTransactionsByCustomer(@PathVariable String idNumber) {
-        return new ResponseEntity<>(transactionsService.getAllTransactionsByCustomer(idNumber), HttpStatus.OK);
+    @GetMapping("/allTransactions-by-AppUser/{idNumber}")
+    private ResponseEntity<List<Transaction>> getAllTransactionsByAppUser(@PathVariable String idNumber) {
+        return new ResponseEntity<>(transactionsService.getAllTransactionsByAppUser(idNumber), HttpStatus.OK);
     }
 
 
@@ -66,9 +66,11 @@ public class TransactionController {
 
     })
     @GetMapping("/all-transactions")
+    //only staff
     private ResponseEntity<List<Transaction>> getAllTransactions() {
         return new ResponseEntity<>(transactionsService.getAllTransactions(), HttpStatus.OK);
     }
+
     @Operation(summary = "fetches all transactions by an accountNumber")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "transactions fetched  successfully",
@@ -79,7 +81,8 @@ public class TransactionController {
 
     })
     @GetMapping("/all-transactions-by-accountNumber/{accountNumber}")
-       private ResponseEntity<List<Transaction>> getAllTransactionsByAccountNumber(@PathVariable String accountNumber) {
+    //onlystuff
+    private ResponseEntity<List<Transaction>> getAllTransactionsByAccountNumber(@PathVariable String accountNumber) {
         return new ResponseEntity<>(transactionsService.getAllTRansactionsByAccountNumber(accountNumber), HttpStatus.OK);
     }
 

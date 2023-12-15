@@ -12,6 +12,6 @@ public interface AccountRepository extends JpaRepository<Account, String>{
     Optional<Account> findByAccountNumber(String accountNumber);
 
     @Query("SELECT SUM(ac.balance) FROM Account ac")
-    BigDecimal findTotalCustomerSavings();
+    BigDecimal findTotalAppUserSavings();
     
 }

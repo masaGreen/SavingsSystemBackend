@@ -23,10 +23,9 @@ public class  Account extends BaseEntity {
     private String accountNumber;
     private BigDecimal balance;
 
-    
     @ManyToOne
-    @JoinColumn(name = "cutomer_id")
-    private Customer customer;
+    @JoinColumn(name = "app_user_id")
+    private AppUser appUser;
 
     @ManyToOne
     @JoinColumn(name="account_type_id")

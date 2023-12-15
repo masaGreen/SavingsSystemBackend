@@ -11,6 +11,7 @@ import com.masaGreen.presta.repositories.AccountRepository;
 import com.masaGreen.presta.repositories.TransactionsRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -25,14 +26,15 @@ public class TransactionsService {
 
     private final AccountService accountService;
     private final AccountRepository accountRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public String createTransaction(CreateTransactionDTO createTransactionDTO) {
         // find account ,not found throw an error
         Account account = accountService.findByAccountNumber(createTransactionDTO.accountNumber());
-        //confirm customers pin
-        String actualPin = createTransactionDTO.pin() + account.getCustomer().getPinEncryption();
-        if(!account.getCustomer().getPin().equals(actualPin)){
+        //confirm AppUsers pin
+        String pinFromDTO = createTransactionDTO.pin() + account.getAppUser().getPinEncryption();
+        if(!passwordEncoder.matches(pinFromDTO,account.getAppUser().getPin())){
             throw new WrongPinException("wrong pin");
         }
 
@@ -88,8 +90,8 @@ public class TransactionsService {
         return transactionsRepository.findAll();
     }
 
-    public List<Transaction> getAllTransactionsByCustomer(String idNumber) {
-        return transactionsRepository.findAllTransactionsByCustomerIdNumber(idNumber);
+    public List<Transaction> getAllTransactionsByAppUser(String idNumber) {
+        return transactionsRepository.findAllTransactionsByAppUserIdNumber(idNumber);
     }
     public List<Transaction> getAllTRansactionsByAccountNumber(String accountNumber){
         return transactionsRepository.findAllTransactionsByAccountNumber(accountNumber);

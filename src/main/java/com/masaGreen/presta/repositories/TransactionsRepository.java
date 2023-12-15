@@ -14,11 +14,11 @@ public interface TransactionsRepository extends JpaRepository<Transaction, Strin
     @Query("""
             SELECT t FROM Transaction t
             JOIN t.account a
-            JOIN a.customer c
+            JOIN a.appUser c
             WHERE c.idNumber = :idNumber
                         
             """)
-    List<Transaction> findAllTransactionsByCustomerIdNumber(@Param(value = "idNumber") String idNumber);
+    List<Transaction> findAllTransactionsByAppUserIdNumber(@Param(value = "idNumber") String idNumber);
     
     @Query("""
             SELECT t FROM Transaction t

@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 
 public record CreateAccountDTO(
         @NotBlank
-        String customerId,
+        String appUserId,
         String branchCode,
         @NotProfane
         String accountType
