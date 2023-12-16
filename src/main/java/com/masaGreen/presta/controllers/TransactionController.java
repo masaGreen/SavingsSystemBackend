@@ -15,6 +15,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,66 +26,60 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TransactionController {
 
-    private final TransactionsService transactionsService;
+        private final TransactionsService transactionsService;
 
+        @Operation(summary = "register a new transaction")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "201", description = "transaction registered successfully", content = {
+                                        @Content(mediaType = "application/json", schema = @Schema(implementation = String.class)) }),
+                        @ApiResponse(responseCode = "404", description = "account to initiating transaction not found", content = @Content(examples = @ExampleObject(value = "{'message': 'incorrect account number provided'}"))),
 
-    @Operation(summary = "register a new transaction")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "transaction registered successfully",
-                    content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = String.class))}),
-            @ApiResponse(responseCode = "404", description = "account to initiating transaction not found",
-                    content = @Content(examples = @ExampleObject(value = "{'message': 'incorrect account number provided'}"))),
+        })
+        @PostMapping("/create-transaction")
+        public ResponseEntity<String> createDepositTransaction(
+                        @RequestBody @Valid CreateTransactionDTO createDepositTransactionDTO) {
 
-    })
-    @PostMapping("/create-transaction")
-    public ResponseEntity<String> createDepositTransaction(@RequestBody @Valid CreateTransactionDTO createDepositTransactionDTO) {
+                return new ResponseEntity<>(transactionsService.createTransaction(createDepositTransactionDTO),
+                                HttpStatus.CREATED);
+        }
 
-        return new ResponseEntity<>(transactionsService.createTransaction(createDepositTransactionDTO), HttpStatus.CREATED);
-    }
+        @Operation(summary = "fetches all transactions by a AppUser")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "transactions fetched  successfully", content = {
+                                        @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Transaction.class))) }),
+                        @ApiResponse(responseCode = "404", description = "AppUser not found", content = @Content(examples = @ExampleObject(value = "{'message': 'AppUser not found'}"))),
 
-    @Operation(summary = "fetches all transactions by a AppUser")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "transactions fetched  successfully",
-                    content = {@Content(mediaType = "application/json",
-                            array = @ArraySchema(schema = @Schema(implementation = Transaction.class)))}),
-            @ApiResponse(responseCode = "404", description = "AppUser not found",
-                    content = @Content(examples = @ExampleObject(value = "{'message': 'AppUser not found'}"))),
+        })
+        @GetMapping("/allTransactions-by-AppUser/{idNumber}")
+        private ResponseEntity<List<Transaction>> getAllTransactionsByAppUser(@PathVariable String idNumber) {
+                return new ResponseEntity<>(transactionsService.getAllTransactionsByAppUser(idNumber), HttpStatus.OK);
+        }
 
-    })
-    @GetMapping("/allTransactions-by-AppUser/{idNumber}")
-    private ResponseEntity<List<Transaction>> getAllTransactionsByAppUser(@PathVariable String idNumber) {
-        return new ResponseEntity<>(transactionsService.getAllTransactionsByAppUser(idNumber), HttpStatus.OK);
-    }
+        @Operation(summary = "fetches all transactions ")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "transactions fetched  successfully", content = {
+                                        @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Transaction.class))) }),
 
+        })
+        @GetMapping("/all-transactions")
+        @PreAuthorize("hasRole('ROLE_STAFF')")
+        private ResponseEntity<List<Transaction>> getAllTransactions() {
+                return new ResponseEntity<>(transactionsService.getAllTransactions(), HttpStatus.OK);
+        }
 
-    @Operation(summary = "fetches all transactions ")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "transactions fetched  successfully",
-                    content = {@Content(mediaType = "application/json",
-                            array = @ArraySchema(schema = @Schema(implementation = Transaction.class)))}),
+        @Operation(summary = "fetches all transactions by an accountNumber")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "transactions fetched  successfully", content = {
+                                        @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Transaction.class))) }),
+                        @ApiResponse(responseCode = "404", description = "incorrect account number", content = @Content(examples = @ExampleObject(value = "{'message': 'incorrect account number'}"))),
 
-    })
-    @GetMapping("/all-transactions")
-    //only staff
-    private ResponseEntity<List<Transaction>> getAllTransactions() {
-        return new ResponseEntity<>(transactionsService.getAllTransactions(), HttpStatus.OK);
-    }
-
-    @Operation(summary = "fetches all transactions by an accountNumber")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "transactions fetched  successfully",
-                    content = {@Content(mediaType = "application/json",
-                            array = @ArraySchema(schema = @Schema(implementation = Transaction.class)))}),
-            @ApiResponse(responseCode = "404", description = "incorrect account number",
-                    content = @Content(examples = @ExampleObject(value = "{'message': 'incorrect account number'}"))),
-
-    })
-    @GetMapping("/all-transactions-by-accountNumber/{accountNumber}")
-    //onlystuff
-    private ResponseEntity<List<Transaction>> getAllTransactionsByAccountNumber(@PathVariable String accountNumber) {
-        return new ResponseEntity<>(transactionsService.getAllTRansactionsByAccountNumber(accountNumber), HttpStatus.OK);
-    }
-
+        })
+        @GetMapping("/all-transactions-by-accountNumber/{accountNumber}")
+        @PreAuthorize("hasRole('ROLE_STAFF')")
+        private ResponseEntity<List<Transaction>> getAllTransactionsByAccountNumber(
+                        @PathVariable String accountNumber) {
+                return new ResponseEntity<>(transactionsService.getAllTRansactionsByAccountNumber(accountNumber),
+                                HttpStatus.OK);
+        }
 
 }

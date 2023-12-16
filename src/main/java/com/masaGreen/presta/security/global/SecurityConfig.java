@@ -28,40 +28,45 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
-        // httpSecurity
-        //         .authorizeHttpRequests(auth -> {
-        //             auth.requestMatchers("/swagger-ui.html","/swagger-ui.html", "/favicon.ico","/swagger/**","/swagger-ui/**").permitAll().anyRequest().authenticated();
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception{
+        httpSecurity
+                .authorizeHttpRequests(auth -> {
+                    auth.requestMatchers("/swagger-ui/**","/v3/api-docs/**",
+                    "/swagger-ui/index.html","/v1/app-user/create","/v1/app-user/login","/v1/app-user/validate-app-user/**"
+                    ,"/swagger/**","/swagger-ui.html", "/favicon.ico","/swagger/**","/swagger-ui/**").permitAll()
+                    .anyRequest().authenticated();
 
-        //         })
-        //         .csrf(csrf->csrf.disable())
-        //         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        //         .cors(cors-> cors.disable())
+                })
+                .csrf(csrf->csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .cors(cors-> cors.disable())
                 
-        //         .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-        //         .headers(headers->headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .headers(headers->headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
 
-        //          .exceptionHandling(exceptionHandling->exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint));
+                 .exceptionHandling(exceptionHandling->exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint));
                 
-        // return httpSecurity.build();
-        http
-        .cors(Customizer.withDefaults())
-        .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
-        .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/auth/**", "/oauth2/**", "auth/forgot-password", "/auth/refreshToken", "/static/**", "/.well-known/acme-challenge/**",
-                        "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/auth/login", "login/**", "/auth/validate/**", "/oauth2/**",
-                        "/actuator/**", "/users/**", "/styles/**", "/favicon", "/storage/**", "/error/**", "mentee/profile-header/**", "mentee/bio/**", "mentor/bio/**","mentor/profile-header/**",
-                        "availability/week/**", "/contact","mentor/expertise/**", "mentee/interests/**", "mentee/get-similar/**", "mentor/experiences/**", "mentee/experiences/**", "stats/mentor/**", "stats/mentee/**", "group-sessions/get/**","group-sessions/get-slug/**", "landing-page/**", "group-sessions/mentor/get-all/**").permitAll()
-                .anyRequest().authenticated())
-        .exceptionHandling(exceptionHandling ->
-                exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint)
-        );
-http.addFilterBefore(
-        jwtFilter,
-        UsernamePasswordAuthenticationFilter.class);
-        return http.build();
+        return httpSecurity.build();
+        // http
+        // .cors(Customizer.withDefaults())
+        // .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+        // .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        // .csrf(AbstractHttpConfigurer::disable)
+        // .authorizeHttpRequests(authorize -> authorize
+        //         .requestMatchers("/auth/**", "/oauth2/**", "auth/forgot-password", "/auth/refreshToken", "/static/**", "/.well-known/acme-challenge/**",
+        //                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/auth/login", "login/**", "/auth/validate/**", "/oauth2/**",
+        //                 "/actuator/**", "/users/**", "/styles/**", "/favicon", "/storage/**", "/error/**", "mentee/profile-header/**", "mentee/bio/**", "mentor/bio/**","mentor/profile-header/**",
+        //                 "availability/week/**", "/contact","mentor/expertise/**", "mentee/interests/**", "mentee/get-similar/**", "mentor/experiences/**", "mentee/experiences/**", "stats/mentor/**", "stats/mentee/**", "group-sessions/get/**","group-sessions/get-slug/**", "landing-page/**", "group-sessions/mentor/get-all/**").permitAll()
+        //                 .anyRequest().authenticated()
+            // )
+        // .exceptionHandling(exceptionHandling ->
+        //         exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint)
+        // );
+        // ;
+// http.addFilterBefore(
+//         jwtFilter,
+//         UsernamePasswordAuthenticationFilter.class);
+//         return http.build();
 
     }
 

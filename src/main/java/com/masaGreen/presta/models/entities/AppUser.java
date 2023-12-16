@@ -1,5 +1,7 @@
 package com.masaGreen.presta.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.masaGreen.presta.models.superClasess.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -42,19 +44,14 @@ public class AppUser extends BaseEntity{
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(
-            name = "account-role",
+            name = "appuser-role",
             joinColumns = @JoinColumn(name = "app_user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name="role_id", referencedColumnName = "id")
     )
     private Set<Role> roles = new HashSet<>();
-
-    @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL)
+    
+    @OneToMany(mappedBy = "appUser",fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<Account> accounts = new HashSet<>();
 
-    public Set<Role> addRoles(Set<String> rolesNew){
-
-        roles.addAll(rolesNew.stream().map(Role::new).collect(Collectors.toSet()));
-        return roles;
-    }
-
+   
 }

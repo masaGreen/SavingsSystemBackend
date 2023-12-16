@@ -21,6 +21,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
                 HttpStatus.UNAUTHORIZED.value(),
                 authException.getMessage(),
                 new Date());
-        response.sendError(HttpStatus.UNAUTHORIZED.value(),"failed at jwt entry point");
+        response.sendError(HttpStatus.UNAUTHORIZED.value(),authException.getMessage());
+        // response.sendError(HttpStatus.UNAUTHORIZED.value(),exceptionObject.toString());
     }
 }

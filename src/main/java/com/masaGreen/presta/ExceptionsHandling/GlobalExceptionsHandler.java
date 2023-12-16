@@ -1,6 +1,7 @@
 package com.masaGreen.presta.ExceptionsHandling;
 
 import com.masaGreen.presta.ExceptionsHandling.exceptions.InsufficientFundsException;
+import com.masaGreen.presta.ExceptionsHandling.exceptions.UnverifiedUserException;
 import com.masaGreen.presta.ExceptionsHandling.exceptions.WrongPinException;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.net.ConnectException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,4 +67,12 @@ public class GlobalExceptionsHandler {
         log.error("exception {}", ex.getMessage());
         return new ResponseEntity<>(exceptionObject, HttpStatus.BAD_REQUEST);
     }
+     @ExceptionHandler(ConnectException.class)
+    public ResponseEntity<ExceptionObject> handleConnectException(ConnectException ex){
+        ExceptionObject exceptionObject = ExceptionObject.singleMessageException(HttpStatus.BAD_REQUEST.value(), ex.getMessage(),new Date());
+        log.error("exception {}", ex.getMessage());
+        return new ResponseEntity<>(exceptionObject, HttpStatus.BAD_REQUEST);
+    }
+
+   
 }

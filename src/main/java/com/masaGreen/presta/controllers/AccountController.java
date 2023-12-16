@@ -16,6 +16,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,7 +37,7 @@ public class AccountController {
 
     })
     @PostMapping("/create")
-    //staff role
+    @PreAuthorize("hasRole('ROLE_STAFF')")
     public ResponseEntity<AccountCreationResDTO> createAccount(@RequestBody CreateAccountDTO createAccountDTO){
         
         return new ResponseEntity<>(accountService.saveAccount(createAccountDTO), HttpStatus.CREATED);
@@ -50,7 +51,7 @@ public class AccountController {
     })
 
     @GetMapping("/total-accounts-balance")
-    //staff
+     @PreAuthorize("hasRole('ROLE_STAFF')")
     private ResponseEntity<BalanceDTO> getTotalSavingsForAllAppUser(){
         return new ResponseEntity<>(accountService.getAllAppUsersTotalSavings(), HttpStatus.OK);
     }
@@ -67,7 +68,7 @@ public class AccountController {
                         content = @Content(examples = @ExampleObject(value = "{'message': 'account not found'}"))),
 
         })
-        @PostMapping("/AppUser-balance")
+        @PostMapping("/app-user-balance")
         private ResponseEntity<BalanceDTO> getTotalSavingsPerAppUser(@Valid @Validated @RequestBody BalanceInquiryDTO balanceInquiryDTO){
             return new ResponseEntity<>(accountService.getAppUserAccountBalance(balanceInquiryDTO), HttpStatus.OK);
         }

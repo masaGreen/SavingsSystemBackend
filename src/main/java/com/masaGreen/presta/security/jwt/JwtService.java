@@ -35,12 +35,12 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    public String generateToken(String userEmail) {
+    public String generateToken(String idNumber) {
         SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         Date currentDate = new Date();
-        Date expireDate = new Date(currentDate.getTime() + 72000);
+        Date expireDate = new Date(currentDate.getTime() + 720000000);
         return Jwts.builder()
-                .setSubject(userEmail)
+                .setSubject(idNumber)
                 .setIssuedAt(new Date())
                 .setExpiration(expireDate)
                 .signWith(secretKey, SignatureAlgorithm.HS256)

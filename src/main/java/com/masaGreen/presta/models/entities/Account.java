@@ -1,5 +1,7 @@
 package com.masaGreen.presta.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.masaGreen.presta.models.superClasess.BaseEntity;
 import jakarta.persistence.*;
@@ -25,13 +27,15 @@ public class  Account extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "app_user_id")
+    @JsonBackReference
     private AppUser appUser;
 
     @ManyToOne
     @JoinColumn(name="account_type_id")
+
     private AccountType accountType;
 
     @OneToMany(mappedBy="account", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonIgnore
     private Set<Transaction> transactions = new HashSet<>();
 }

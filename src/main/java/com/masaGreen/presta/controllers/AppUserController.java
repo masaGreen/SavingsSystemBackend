@@ -2,8 +2,11 @@ package com.masaGreen.presta.controllers;
 
 
 import com.masaGreen.presta.dtos.appUser.AppUserDTO;
+import com.masaGreen.presta.dtos.appUser.AppUserLoginDTO;
 import com.masaGreen.presta.dtos.appUser.AppUserUpdateDto;
 import com.masaGreen.presta.dtos.appUser.CreateAppUser;
+import com.masaGreen.presta.dtos.appUser.LoginResDTO;
+import com.masaGreen.presta.models.entities.AppUser;
 import com.masaGreen.presta.services.AppUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -15,17 +18,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/v1/AppUser")
+@RequestMapping("/v1/app-user")
 @Tag(name = "AppUsers", description = "Endpoints for managing AppUsers")
 public class AppUserController {
 
@@ -42,11 +44,40 @@ public class AppUserController {
 
     })
     @PostMapping("/create")
-    //role must be staff
     public ResponseEntity<String> saveAppUser(@RequestBody @Valid CreateAppUser createAppUser){
 
         return new ResponseEntity<>(appUserService.saveAppUser(createAppUser), HttpStatus.CREATED);
 
+    }
+        @Operation(summary = "validate app-user by mail")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "AppUser validated successfully",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = String.class))}),
+            @ApiResponse(responseCode = "404", description = "AppUser not found",
+                    content = @Content(examples = @ExampleObject(value = "{'message': 'AppUser not found'}"))),
+
+    })
+    @GetMapping("/validate-app-user/{validationString}")
+    private ResponseEntity<String> validateAppUser(@PathVariable String validationString ){
+
+        return new ResponseEntity<>(appUserService.validateAppUser(validationString), HttpStatus.OK);
+    }
+
+
+           @Operation(summary = "login app-user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "AppUser logged in successfully",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = String.class))}),
+            @ApiResponse(responseCode = "401", description = "Bad credentials",
+                    content = @Content(examples = @ExampleObject(value = "{'message': 'Incorrect credentials'}"))),
+
+    })
+    @PostMapping("/login")
+    private ResponseEntity<LoginResDTO> loginAppUser(@RequestBody AppUserLoginDTO appUserLoginDTO){
+
+        return new ResponseEntity<>(appUserService.loginByEmailAndIdNUmber(appUserLoginDTO), HttpStatus.OK);
     }
 
 
@@ -56,9 +87,9 @@ public class AppUserController {
                     content = {@Content(mediaType = "application/json",
                             array = @ArraySchema( schema = @Schema(implementation = AppUserDTO.class)))})
     })
-    @GetMapping("/all-AppUsers")
-    //role must be staff
-    public ResponseEntity<List<AppUserDTO>> getAllAppUsers(){
+    @GetMapping("/all-app-users")
+    @PreAuthorize("hasRole('ROLE_STAFF')")
+    public ResponseEntity<List<AppUser>> getAllAppUsers(){
         return new ResponseEntity<>(appUserService.getAllAppUsers(), HttpStatus.OK);
     }
 
@@ -74,7 +105,7 @@ public class AppUserController {
 
     })
     @GetMapping("/findByIdNumber/{idNumber}")
-    //role must be staff
+    @PreAuthorize("hasRole('ROLE_STAFF')")
     private ResponseEntity<AppUserDTO> findAppUserByIdNumber(@PathVariable String idNumber){
         return new ResponseEntity<>(appUserService.findByIdNumber(idNumber), HttpStatus.OK);
     }
@@ -89,7 +120,7 @@ public class AppUserController {
                     content = @Content(examples = @ExampleObject(value = "{'message': 'AppUser not found'}"))),
 
     })
-    @PutMapping("/updateAppUser/{idNumber}")
+    @PutMapping("/update-app-user/{idNumber}")
     private ResponseEntity<String> updateAppUser(@RequestBody @Valid AppUserUpdateDto appUserUpdateDto, @PathVariable String idNumber ){
 
         return new ResponseEntity<>(appUserService.updateAppUserByIdNumber(idNumber, appUserUpdateDto), HttpStatus.OK);
@@ -105,7 +136,7 @@ public class AppUserController {
 
     })
     @DeleteMapping("/close-account/{id}")
-    //role must be stuff
+    @PreAuthorize("hasRole('ROLE_STAFF')")
     private ResponseEntity<String> deleteAppUser(@PathVariable String id){
         return new ResponseEntity<>(appUserService.deleteAppUserById(id), HttpStatus.OK);
     }

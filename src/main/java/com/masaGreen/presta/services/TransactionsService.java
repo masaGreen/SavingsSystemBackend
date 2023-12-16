@@ -48,20 +48,22 @@ public class TransactionsService {
             
             //update account balance
             account.setBalance(
-                    (account.getBalance().add(amount)).subtract(new BigDecimal(createTransactionDTO.transactionCharge())));
+                    (account.getBalance().add(amount))
+                    .subtract(new BigDecimal(createTransactionDTO.transactionCharge())));
 
         }
         if (createTransactionDTO.transactionType().equals(TransactionType.WITHDRAWAL.getDesc())) {
             // check if the current amount is sufficient to satisfy the withdrawal
 
-            if (account.getBalance().compareTo(
-                    amount.add(new BigDecimal(100).add(new BigDecimal(createTransactionDTO.transactionCharge())))) >= 0) {
+            if (account.getBalance().compareTo(amount.add(new BigDecimal(100).add(new BigDecimal(createTransactionDTO.transactionCharge())))) >= 0) {
+                
                 throw new InsufficientFundsException("account balance is insufficient");
             } else {
                 transaction.setTransactionType(TransactionType.WITHDRAWAL);
                 //update account balance
                 account.setBalance(
-                        (account.getBalance().subtract(amount)).subtract(new BigDecimal(createTransactionDTO.transactionCharge())));
+                        (account.getBalance().subtract(amount))
+                        .subtract(new BigDecimal(createTransactionDTO.transactionCharge())));
             }
 
         }

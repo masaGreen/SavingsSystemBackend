@@ -29,7 +29,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
             String bearerToken = getJwtToken(request);
 
-            if( jwtService.validateToken(bearerToken) && bearerToken != null){
+            if( bearerToken != null && jwtService.validateToken(bearerToken) ){
                 String subject= jwtService.getEmailFromJWT(bearerToken);
                 request.setAttribute("idNumber",subject);
                 UserDetails userDetails = customUserDetailsService.loadUserByUsername(subject);
@@ -40,10 +40,11 @@ public class JwtFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(token);
                
             }
-            filterChain.doFilter(request,response);
+            
         }catch (Exception e){
             System.out.println(e.getMessage()+"hi");
         }
+        filterChain.doFilter(request,response);
     }
 
     private String getJwtToken(HttpServletRequest request){
