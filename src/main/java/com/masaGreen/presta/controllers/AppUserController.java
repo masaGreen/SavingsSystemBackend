@@ -6,6 +6,7 @@ import com.masaGreen.presta.dtos.appUser.AppUserLoginDTO;
 import com.masaGreen.presta.dtos.appUser.AppUserUpdateDto;
 import com.masaGreen.presta.dtos.appUser.CreateAppUser;
 import com.masaGreen.presta.dtos.appUser.LoginResDTO;
+import com.masaGreen.presta.dtos.appUser.PinEditDTO;
 import com.masaGreen.presta.models.entities.AppUser;
 import com.masaGreen.presta.services.AppUserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,11 +17,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,6 +32,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/v1/app-user")
+
 @Tag(name = "AppUsers", description = "Endpoints for managing AppUsers")
 public class AppUserController {
 
@@ -81,15 +86,32 @@ public class AppUserController {
     }
 
 
-    @Operation(summary = "fetch all AppUsers")
+   
+
+     @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "AppUser validated successfully",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = String.class))}),
+            @ApiResponse(responseCode = "404", description = "AppUser not found",
+                    content = @Content(examples = @ExampleObject(value = "{'message': 'AppUser not found'}"))),
+
+    })
+    @PostMapping("/change-pin")
+    public ResponseEntity<String> changePin( @RequestBody @Valid @Validated PinEditDTO pinEditDTO, HttpServletRequest request){
+        return new ResponseEntity<>(appUserService.changePin(request,pinEditDTO), HttpStatus.OK);
+    } 
+
+     @Operation(summary = "fetch all AppUsers")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "AppUsers fetched successfully",
                     content = {@Content(mediaType = "application/json",
                             array = @ArraySchema( schema = @Schema(implementation = AppUserDTO.class)))})
     })
     @GetMapping("/all-app-users")
-    @PreAuthorize("hasRole('ROLE_STAFF')")
+    @PreAuthorize("hasRole('ROLE_STAFF')") 
     public ResponseEntity<List<AppUser>> getAllAppUsers(){
+       
+          
         return new ResponseEntity<>(appUserService.getAllAppUsers(), HttpStatus.OK);
     }
 

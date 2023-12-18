@@ -5,6 +5,8 @@ import com.masaGreen.presta.models.entities.Role;
 import com.masaGreen.presta.repositories.AppUserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,14 +27,15 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String idNumber) throws UsernameNotFoundException {
         AppUser appUser = appUserRepository.findByIdNumber(idNumber).orElseThrow(
                 ()-> new EntityNotFoundException("idNumber not registered"));
-
         return new User(
-                appUser.getFirstName(),
+                appUser.getIdNumber(),
                 appUser.getPin(),
                 mapRolesToGrantedAuthorities(appUser.getRoles()));
     }
 
-    private Collection<SimpleGrantedAuthority> mapRolesToGrantedAuthorities(Set<Role> roles){
-        return  roles.stream().map(role-> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toSet());
+    private Collection<GrantedAuthority> mapRolesToGrantedAuthorities(Set<Role> roles){
+        return  roles.stream()
+                        .map(role-> new SimpleGrantedAuthority(role.getName()))
+                        .collect(Collectors.toList());
     }
 }

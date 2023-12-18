@@ -9,8 +9,12 @@ import com.masaGreen.presta.models.enums.TransactionMedium;
 import com.masaGreen.presta.models.enums.TransactionType;
 import com.masaGreen.presta.repositories.AccountRepository;
 import com.masaGreen.presta.repositories.TransactionsRepository;
+import com.masaGreen.presta.security.jwt.JwtFilter;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +27,7 @@ import java.util.Set;
 public class TransactionsService {
 
     private final TransactionsRepository transactionsRepository;
-
+    // private final JwtFilter jwtFilter;
     private final AccountService accountService;
     private final AccountRepository accountRepository;
     private final PasswordEncoder passwordEncoder;
@@ -89,6 +93,7 @@ public class TransactionsService {
 
 
     public List<Transaction> getAllTransactions() {
+      
         return transactionsRepository.findAll();
     }
 

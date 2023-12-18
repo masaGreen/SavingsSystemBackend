@@ -1,27 +1,50 @@
 package com.masaGreen.presta.security.jwt;
 
 import com.masaGreen.presta.security.CustomUserDetailsService;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.lang.NonNull;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 
-@Service
-@RequiredArgsConstructor
+import java.util.Arrays;
+
+
+
+@Slf4j
+
 public class JwtFilter extends OncePerRequestFilter {
 
-    private  final JwtService jwtService;
-    private final CustomUserDetailsService customUserDetailsService;
+    @Autowired
+    private  JwtService jwtService;
+    
+    @Autowired
+    private  CustomUserDetailsService customUserDetailsService;
+    
+    private final HandlerExceptionResolver handlerExceptionResolver;
+     public JwtFilter(HandlerExceptionResolver handlerExceptionResolver){
+        this.handlerExceptionResolver = handlerExceptionResolver;
+     }
+    
+    Claims claims;
     @Override
     protected void doFilterInternal( HttpServletRequest request,  HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
@@ -29,10 +52,14 @@ public class JwtFilter extends OncePerRequestFilter {
 
             String bearerToken = getJwtToken(request);
 
-            if( bearerToken != null && jwtService.validateToken(bearerToken) ){
-                String subject= jwtService.getEmailFromJWT(bearerToken);
+            if( bearerToken != null && jwtService.validateToken(bearerToken) && SecurityContextHolder.getContext().getAuthentication() == null ){
+                String subject= jwtService.getIdNumberFromJWT(bearerToken);
                 request.setAttribute("idNumber",subject);
+                
                 UserDetails userDetails = customUserDetailsService.loadUserByUsername(subject);
+                claims = jwtService.extractAllClaims(bearerToken);
+                
+                
                 UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities()
                 );
@@ -40,13 +67,16 @@ public class JwtFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(token);
                
             }
-            
-        }catch (Exception e){
-            System.out.println(e.getMessage()+"hi");
+            filterChain.doFilter(request,response);
+        }catch ( MalformedJwtException | IllegalArgumentException | ExpiredJwtException | UnsupportedJwtException | SignatureException ex){
+            log.error("error parsing jwt token {}",ex.getMessage());
+
+            handlerExceptionResolver.resolveException(request, response, null, ex);
         }
-        filterChain.doFilter(request,response);
+        
     }
 
+    
     private String getJwtToken(HttpServletRequest request){
         String bearerToken = request.getHeader("Authorization");
         if(bearerToken !=null && bearerToken.startsWith("Bearer")){

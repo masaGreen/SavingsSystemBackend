@@ -2,6 +2,7 @@ package com.masaGreen.presta.services;
 
 import com.masaGreen.presta.dtos.appUser.CreateAppUser;
 import com.masaGreen.presta.dtos.appUser.LoginResDTO;
+import com.masaGreen.presta.dtos.appUser.PinEditDTO;
 import com.masaGreen.presta.ExceptionsHandling.exceptions.UnverifiedUserException;
 import com.masaGreen.presta.dtos.appUser.AppUserDTO;
 import com.masaGreen.presta.dtos.appUser.AppUserLoginDTO;
@@ -10,14 +11,17 @@ import com.masaGreen.presta.models.entities.AppUser;
 import com.masaGreen.presta.models.entities.Role;
 import com.masaGreen.presta.repositories.AppUserRepository;
 import com.masaGreen.presta.repositories.RoleRepository;
+import com.masaGreen.presta.security.jwt.JwtFilter;
 import com.masaGreen.presta.security.jwt.JwtService;
 
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
+
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -34,14 +38,22 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AppUserService {
 
     private final AppUserRepository appUserRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final EmailService emailService;
+  
+    // private final EmailService emailService;
+
+    public AppUser getAppUserFromServletRequest(HttpServletRequest request) {
+        String idNumber = (String) request.getAttribute("idNumber");
+        if (idNumber == null)
+            throw new AccessDeniedException("Access denied");
+        return appUserRepository.findByIdNumber(idNumber).orElseThrow(
+                () -> new EntityNotFoundException(" app user not found"));
+    }
 
     public AppUser findAppUserById(String id) {
         return appUserRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("AppUser not found"));
@@ -59,11 +71,18 @@ public class AppUserService {
             appUser.setPhoneNumber(createAppUser.phoneNumber());
             appUser.setIdNumber(createAppUser.idNumber());
             appUser.setEmail(createAppUser.email());
-            if (createAppUser.roles() == null) {
-                appUser.setRoles(addDefaultRoles());
-            } else {
-                appUser.setRoles(addRoles(createAppUser.roles()));
+            
+            if (createAppUser.roles() != null) {
+                Set<Role> newRoles = createAppUser.roles().stream()
+                .map(s -> new Role(s))
+                .collect(Collectors.toSet());
+                //addDefaultRole
+                newRoles.addAll(addDefaultRole());
+                appUser.setRoles(newRoles);
+                saveNewRoles(newRoles);
 
+            }else{
+                appUser.setRoles(addDefaultRole());
             }
 
             String validationString = UUID.randomUUID().toString();
@@ -72,7 +91,7 @@ public class AppUserService {
             appUser.setVerified(false);
 
             AppUser savedUser = appUserRepository.save(appUser);
-            emailService.sendEmailVerificationRequest(savedUser);
+            // emailService.sendEmailVerificationRequest(savedUser);
 
             return "AppUser saved successfully";
 
@@ -100,17 +119,20 @@ public class AppUserService {
         if (!appUser.isVerified()) {
             throw new UnverifiedUserException("must be verified to login");
         }
-        // send them their pin via email
-        // setPin random string + four digits
-        String encrypter = UUID.randomUUID().toString();
-        String partialPin = generateInitialPin();
 
-        log.info(partialPin + "mypin");
-        appUser.setPinEncryption(encrypter);
-        appUser.setPin(passwordEncoder.encode(partialPin + encrypter));
-        appUserRepository.save(appUser);
+        if (appUser.getPin() == null) {
+            // send them their pin via email
+            // setPin random string + four digits
+            String encrypter = UUID.randomUUID().toString();
+            String partialPin = generateInitialPin();
 
-        emailService.sendPinInfoEmail(appUser.getEmail(), partialPin, appUser.getFirstName());
+            appUser.setPinEncryption(encrypter);
+            appUser.setPin(passwordEncoder.encode(partialPin + encrypter));
+            appUserRepository.save(appUser);
+            // emailService.sendPinInfoEmail(appUser.getEmail(), partialPin,
+            // appUser.getFirstName());
+
+        }
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(appUser.getIdNumber(),
                 appUser.getPin());
@@ -120,9 +142,23 @@ public class AppUserService {
         return new LoginResDTO(appUser.getId(), token, appUser.getFirstName());
     }
 
+    public String changePin(HttpServletRequest request, PinEditDTO pinEditDTO) {
+
+        AppUser appUser = getAppUserFromServletRequest(request);
+        if (passwordEncoder.matches(pinEditDTO.oldPin() + appUser.getPinEncryption(), appUser.getPin())) {
+            appUser.setPin(passwordEncoder.encode(pinEditDTO.newPin() + appUser.getPinEncryption()));
+        }
+        appUserRepository.save(appUser);
+        return "pin successfully changed";
+    }
+
     public List<AppUser> getAllAppUsers() {
+        
         return appUserRepository.findAll();
         // return appUserRepository.findAll().stream().map(AppUserDTO::new).toList();
+
+     
+
     }
 
     public String updateAppUserByIdNumber(String idNumber, AppUserUpdateDto appUserUpdateDto) {
@@ -146,6 +182,10 @@ public class AppUserService {
         var AppUser = appUserRepository.findByIdNumber(idNumber)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("AppUser by %s not found", idNumber)));
         return new AppUserDTO(AppUser);
+    }
+
+    public AppUser save(AppUser appUser) {
+        return appUserRepository.save(appUser);
     }
 
     @Transactional
@@ -173,7 +213,7 @@ public class AppUserService {
         return String.format("%04d", generatedRandomInt);
     }
 
-    private Set<Role> addDefaultRoles() {
+    private Set<Role> addDefaultRole() {
         boolean roleExists = roleRepository.existsByName("ROLE_CUSTOMER");
         Set<Role> roles = new HashSet<>();
         if (roleExists) {
@@ -188,13 +228,17 @@ public class AppUserService {
 
     }
 
-    public Set<Role> addRoles(Set<String> rolesNew) {
-        Set<Role> newRoles = rolesNew.stream()
-                .map(Role::new).filter(r -> roleRepository.existsByName(r.getName()))
-                .collect(Collectors.toSet());
-        var roles = new HashSet<Role>();
-        roles.addAll(roleRepository.saveAll(newRoles));
-        return roles;
+    public void saveNewRoles(Set<Role> roles) {
+      
+        
+
+        List<Role> existingRoles =roleRepository.findAll();
+       
+        Set<Role> rolesSet = new HashSet<>(existingRoles);
+        roles.removeAll(rolesSet);
+
+        roleRepository.saveAll(roles);
+
 
     }
 

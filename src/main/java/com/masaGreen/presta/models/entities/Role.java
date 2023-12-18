@@ -15,4 +15,11 @@ import lombok.Setter;
 public class Role extends BaseEntity {
 
     private String name;
+
+    @Override
+    public String toString() {
+       return this.name;
+    }
+
+    
 }

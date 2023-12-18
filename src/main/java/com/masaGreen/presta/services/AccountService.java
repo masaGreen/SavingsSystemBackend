@@ -12,10 +12,13 @@ import com.masaGreen.presta.models.entities.Transaction;
 import com.masaGreen.presta.models.enums.TransactionMedium;
 import com.masaGreen.presta.models.enums.TransactionType;
 import com.masaGreen.presta.repositories.AccountRepository;
-import com.masaGreen.presta.repositories.AppUserRepository;
 import com.masaGreen.presta.repositories.TransactionsRepository;
+
+
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,17 +31,17 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AccountService {
     private final AccountRepository accountRepository;
-    private final AppUserRepository appUserRepository;
+    private final AppUserService appUserService;
     private final AccountTypeService accountTypeService;
     private final TransactionsRepository transactionsRepository;
     private final PasswordEncoder passwordEncoder;
+        
 
     @Transactional
-
     public AccountCreationResDTO saveAccount(CreateAccountDTO createAccountDTO) {
+   
         // check if appUser exists or throw an exception
-        AppUser appUser = appUserRepository.findById(createAccountDTO.appUserId()).orElseThrow(
-                () -> new EntityNotFoundException("app-user not found"));
+        AppUser appUser = appUserService.findAppUserById(createAccountDTO.appUserId());
         // check if appUser already has that accountType or throw an exception
         AccountType accountType = accountTypeService.findByAccountTypeByName(createAccountDTO.accountType());
 
@@ -57,7 +60,7 @@ public class AccountService {
         var userAccounts = appUser.getAccounts();
         userAccounts.add(createdAccount);
         appUser.setAccounts(userAccounts);
-        appUserRepository.save(appUser);
+        appUserService.save(appUser);
 
         // update the first transaction by that account as a deposit
         Transaction transaction = new Transaction();
@@ -73,11 +76,11 @@ public class AccountService {
 
     }
 
+    @Transactional
     public BalanceDTO getAppUserAccountBalance(BalanceInquiryDTO balanceInquiryDTO) {
-        // decrypt the pin from how the client encrypted it using a secret key
+        
         // check if the appUser exists or throw an exception
-        AppUser appUser = appUserRepository.findById(balanceInquiryDTO.appUserId()).orElseThrow(
-                () -> new EntityNotFoundException("app-user not found"));
+        AppUser appUser = appUserService.findAppUserById(balanceInquiryDTO.appUserId());
         // confirm pin is right
 
         if (!passwordEncoder.matches(
@@ -106,14 +109,17 @@ public class AccountService {
         return new BalanceDTO(afterBalanceEnquiryNewAccount.getBalance());
     }
 
+ 
+
     public Account findByAccountNumber(String accountNumber) {
+       
         return accountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new EntityNotFoundException("account not found"));
 
     }
 
     public BalanceDTO getAllAppUsersTotalSavings() {
-
+       
         return new BalanceDTO(accountRepository.findTotalAppUserSavings());
 
     }
