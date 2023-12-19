@@ -9,8 +9,13 @@ import com.masaGreen.presta.models.enums.TransactionMedium;
 import com.masaGreen.presta.models.enums.TransactionType;
 import com.masaGreen.presta.repositories.AccountRepository;
 import com.masaGreen.presta.repositories.TransactionsRepository;
+import com.masaGreen.presta.security.jwt.JwtFilter;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -22,17 +27,18 @@ import java.util.Set;
 public class TransactionsService {
 
     private final TransactionsRepository transactionsRepository;
-
+    // private final JwtFilter jwtFilter;
     private final AccountService accountService;
     private final AccountRepository accountRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public String createTransaction(CreateTransactionDTO createTransactionDTO) {
         // find account ,not found throw an error
         Account account = accountService.findByAccountNumber(createTransactionDTO.accountNumber());
-        //confirm customers pin
-        String actualPin = createTransactionDTO.pin() + account.getCustomer().getPinEncryption();
-        if(account.getCustomer().getPin().equals(actualPin)){
+        //confirm AppUsers pin
+        String pinFromDTO = createTransactionDTO.pin() + account.getAppUser().getPinEncryption();
+        if(!passwordEncoder.matches(pinFromDTO,account.getAppUser().getPin())){
             throw new WrongPinException("wrong pin");
         }
 
@@ -46,20 +52,22 @@ public class TransactionsService {
             
             //update account balance
             account.setBalance(
-                    (account.getBalance().add(amount)).subtract(new BigDecimal(createTransactionDTO.transactionCharge())));
+                    (account.getBalance().add(amount))
+                    .subtract(new BigDecimal(createTransactionDTO.transactionCharge())));
 
         }
         if (createTransactionDTO.transactionType().equals(TransactionType.WITHDRAWAL.getDesc())) {
             // check if the current amount is sufficient to satisfy the withdrawal
 
-            if (account.getBalance().compareTo(
-                    amount.add(new BigDecimal(100).add(new BigDecimal(createTransactionDTO.transactionCharge())))) >= 0) {
+            if (account.getBalance().compareTo(amount.add(new BigDecimal(100).add(new BigDecimal(createTransactionDTO.transactionCharge())))) >= 0) {
+                
                 throw new InsufficientFundsException("account balance is insufficient");
             } else {
                 transaction.setTransactionType(TransactionType.WITHDRAWAL);
                 //update account balance
                 account.setBalance(
-                        (account.getBalance().subtract(amount)).subtract(new BigDecimal(createTransactionDTO.transactionCharge())));
+                        (account.getBalance().subtract(amount))
+                        .subtract(new BigDecimal(createTransactionDTO.transactionCharge())));
             }
 
         }
@@ -85,11 +93,12 @@ public class TransactionsService {
 
 
     public List<Transaction> getAllTransactions() {
+      
         return transactionsRepository.findAll();
     }
 
-    public List<Transaction> getAllTransactionsByCustomer(String idNumber) {
-        return transactionsRepository.findAllTransactionsByCustomerIdNumber(idNumber);
+    public List<Transaction> getAllTransactionsByAppUser(String idNumber) {
+        return transactionsRepository.findAllTransactionsByAppUserIdNumber(idNumber);
     }
     public List<Transaction> getAllTRansactionsByAccountNumber(String accountNumber){
         return transactionsRepository.findAllTransactionsByAccountNumber(accountNumber);

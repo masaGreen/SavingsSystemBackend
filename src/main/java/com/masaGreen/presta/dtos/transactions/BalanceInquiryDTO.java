@@ -6,7 +6,7 @@ public record BalanceInquiryDTO(
         @NotEmpty
         String pin,
         @NotEmpty
-        String customerId,
+        String appUserId,
         @NotEmpty
         String accountNumber,
         String transactionCharge) {

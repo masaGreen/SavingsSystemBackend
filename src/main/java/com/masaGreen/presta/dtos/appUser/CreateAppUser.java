@@ -1,4 +1,4 @@
-package com.masaGreen.presta.dtos.customer;
+package com.masaGreen.presta.dtos.appUser;
 
 import com.masaGreen.presta.annotations.NotProfane;
 import jakarta.validation.constraints.Email;
@@ -6,13 +6,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public record CreateCustomer(
+import java.util.Set;
+
+public record CreateAppUser(
         @NotProfane
         @NotBlank(message = "name can't be blank")
         @Size(max = 40, message = "Name too long")
         String firstName,
         @NotProfane
-
         @NotBlank(message = "name can't be blank")
         @Size(max = 40, message = "Name too long")
         String lastName,
@@ -25,7 +26,10 @@ public record CreateCustomer(
         @Pattern(regexp = "^0\\d{9}$", message = "invalid phone number")
         String phoneNumber,
         @Email
-        String email
+        String email,
+
+        Set<String> roles
+
 
 ) {
 

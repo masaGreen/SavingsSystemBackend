@@ -1,6 +1,6 @@
 spring:
     application:
-        name: prestaSavings
+        name: BankManagementService
     datasource:
         url: jdbc:h2:./data/presta
         username: sa
@@ -8,13 +8,29 @@ spring:
         driverClassName: org.h2.Driver
   
     spring.jpa.database-platform: org.hibernate.dialect.H2Dialect
-    h2:
-        console:
-            enabled: true
+#    h2:
+#        console:
+#            enabled: true
     jpa:
         hibernate:
             ddl-auto: update
-        show-sql: true
+        # show-sql: true
+    mail:
+        host: smtp.gmail.com
+        port: 587
+        username: muriithidavidmj@gmail.com
+        password: 
+        properties:
+            mail:
+                smtp: 
+                    auth: true
+                    starttls:
+                        enable: true
+# logging:
+#     level:
+#         root: debug
+
+
 
 
 
