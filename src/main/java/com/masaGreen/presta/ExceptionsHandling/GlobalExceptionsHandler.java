@@ -36,6 +36,8 @@ public class GlobalExceptionsHandler {
         return new ResponseEntity<>(exceptionObject, HttpStatus.BAD_REQUEST);
 
     }
+      
+    
 
     @ExceptionHandler(WrongPinException.class)
     public ResponseEntity<ExceptionObject> handleWrongPinException(WrongPinException ex){

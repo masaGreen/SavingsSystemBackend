@@ -40,6 +40,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private  CustomUserDetailsService customUserDetailsService;
     
     private final HandlerExceptionResolver handlerExceptionResolver;
+    @Autowired
      public JwtFilter(HandlerExceptionResolver handlerExceptionResolver){
         this.handlerExceptionResolver = handlerExceptionResolver;
      }

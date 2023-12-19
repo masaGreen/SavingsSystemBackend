@@ -4,13 +4,17 @@ import com.masaGreen.presta.security.CustomUserDetailsService;
 import com.masaGreen.presta.security.jwt.JwtFilter;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.aop.Advisor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Role;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -27,10 +31,9 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
-@RequiredArgsConstructor
-@EnableWebMvc
-@EnableWebSecurity
-@EnableMethodSecurity
+
+@EnableMethodSecurity(securedEnabled = true)
+@EnableWebSecurity(debug = true)
 public class SecurityConfig {
 
     
@@ -40,11 +43,12 @@ public class SecurityConfig {
     @Autowired
     @Qualifier("handlerExceptionResolver")
     private  HandlerExceptionResolver handlerExceptionResolver;
-    @Bean
-    public JwtFilter jwtFilter(){
-        return new JwtFilter(handlerExceptionResolver);
+   
+
+    public SecurityConfig(JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint, CustomUserDetailsService customUserDetailsService){
+        this.customUserDetailsService = customUserDetailsService;
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
     }
-    
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
@@ -61,13 +65,17 @@ public class SecurityConfig {
                     auth.anyRequest().authenticated();
 
                 })
-                .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(
-                        exceptionHandling -> exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint));
+                        exceptionHandling -> exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint))
+                .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
+                
 
         return httpSecurity.build();
 
     }
+   
+
+	
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -76,7 +84,10 @@ public class SecurityConfig {
         daoAuthenticationProvider.setUserDetailsService(customUserDetailsService);
         return daoAuthenticationProvider;
     }
-
+     @Bean
+    public JwtFilter jwtFilter(){
+        return new JwtFilter(this.handlerExceptionResolver);
+    }
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
             throws Exception {
@@ -88,5 +99,6 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+    
 
 }

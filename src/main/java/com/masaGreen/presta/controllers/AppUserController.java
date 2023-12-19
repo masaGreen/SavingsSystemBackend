@@ -21,23 +21,48 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RequiredArgsConstructor
+@ComponentScan(basePackages = "com.masaGreen.presta")
 @RestController
 @RequestMapping("/v1/app-user")
-
+//@RequiredArgsConstructor
 @Tag(name = "AppUsers", description = "Endpoints for managing AppUsers")
 public class AppUserController {
 
+   @Autowired
+    private  AppUserService appUserService;
 
-    private final AppUserService appUserService;
+
+             @org.jetbrains.annotations.NotNull
+             @org.jetbrains.annotations.Contract("_ -> new")
+             @Operation(summary = "login app-user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "AppUser logged in successfully",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = String.class))}),
+            @ApiResponse(responseCode = "401", description = "Bad credentials",
+                    content = @Content(examples = @ExampleObject(value = "{'message': 'Incorrect credentials'}"))),
+
+    })
+    @PostMapping("/login")
+    private ResponseEntity<LoginResDTO> loginAppUser(@RequestBody AppUserLoginDTO appUserLoginDTO){
+        if(appUserService == null){
+                System.out.println("still not working");
+        }
+        return new ResponseEntity<>(appUserService.loginByEmailAndIdNUmber(appUserLoginDTO), HttpStatus.OK);
+    }
 
     @Operation(summary = "register a new AppUser")
     @ApiResponses(value = {
@@ -50,7 +75,7 @@ public class AppUserController {
     })
     @PostMapping("/create")
     public ResponseEntity<String> saveAppUser(@RequestBody @Valid CreateAppUser createAppUser){
-
+        
         return new ResponseEntity<>(appUserService.saveAppUser(createAppUser), HttpStatus.CREATED);
 
     }
@@ -64,27 +89,13 @@ public class AppUserController {
 
     })
     @GetMapping("/validate-app-user/{validationString}")
-    private ResponseEntity<String> validateAppUser(@PathVariable String validationString ){
-
+    private ResponseEntity<String> validateAppUserByMail(@PathVariable String validationString ){
+        
         return new ResponseEntity<>(appUserService.validateAppUser(validationString), HttpStatus.OK);
     }
 
 
-           @Operation(summary = "login app-user")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "AppUser logged in successfully",
-                    content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = String.class))}),
-            @ApiResponse(responseCode = "401", description = "Bad credentials",
-                    content = @Content(examples = @ExampleObject(value = "{'message': 'Incorrect credentials'}"))),
-
-    })
-    @PostMapping("/login")
-    private ResponseEntity<LoginResDTO> loginAppUser(@RequestBody AppUserLoginDTO appUserLoginDTO){
-
-        return new ResponseEntity<>(appUserService.loginByEmailAndIdNUmber(appUserLoginDTO), HttpStatus.OK);
-    }
-
+  
 
    
 

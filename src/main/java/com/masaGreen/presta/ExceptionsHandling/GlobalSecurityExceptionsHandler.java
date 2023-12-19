@@ -5,6 +5,7 @@ import java.time.ZonedDateTime;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -57,6 +58,13 @@ public class GlobalSecurityExceptionsHandler {
     }
      @ExceptionHandler(ExpiredJwtException.class)
     public ResponseEntity<ExceptionObject> handleExpiredJwtException(ExpiredJwtException ex) {
+        ExceptionObject exceptionObject = ExceptionObject.singleMessageException(HttpStatus.UNAUTHORIZED.value(),
+                ex.getMessage(), ZonedDateTime.now());
+        log.error("exception {}", ex.getMessage());
+        return new ResponseEntity<>(exceptionObject, HttpStatus.FORBIDDEN);
+    }
+     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ExceptionObject> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException ex) {
         ExceptionObject exceptionObject = ExceptionObject.singleMessageException(HttpStatus.UNAUTHORIZED.value(),
                 ex.getMessage(), ZonedDateTime.now());
         log.error("exception {}", ex.getMessage());

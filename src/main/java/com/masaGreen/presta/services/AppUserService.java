@@ -45,8 +45,6 @@ public class AppUserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
   
-    // private final EmailService emailService;
-
     public AppUser getAppUserFromServletRequest(HttpServletRequest request) {
         String idNumber = (String) request.getAttribute("idNumber");
         if (idNumber == null)
