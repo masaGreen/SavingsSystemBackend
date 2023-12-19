@@ -2,9 +2,9 @@ spring:
     application:
         name: BankManagementService
     datasource:
-        url: jdbc:h2:./data/presta
-        username: sa
-        password: password
+        url: ${DB_URL}
+        username: ${DB_USERNAME}
+        password: ${DB_PASWWORD}
         driverClassName: org.h2.Driver
   
     spring.jpa.database-platform: org.hibernate.dialect.H2Dialect
@@ -18,8 +18,8 @@ spring:
     mail:
         host: smtp.gmail.com
         port: 587
-        username: muriithidavidmj@gmail.com
-        password: 
+        username: ${EMAIL_SERVER_USERNAME}
+        password: ${EMAIL_SERVER_PASSWORD}
         properties:
             mail:
                 smtp: 

@@ -53,7 +53,12 @@ public class JwtFilter extends OncePerRequestFilter {
 
             String bearerToken = getJwtToken(request);
 
-            if( bearerToken != null && jwtService.validateToken(bearerToken) && SecurityContextHolder.getContext().getAuthentication() == null ){
+            if( 
+                bearerToken != null && jwtService.validateToken(bearerToken) 
+                && SecurityContextHolder.getContext().getAuthentication() == null 
+                )
+                {
+
                 String subject= jwtService.getIdNumberFromJWT(bearerToken);
                 request.setAttribute("idNumber",subject);
                 
