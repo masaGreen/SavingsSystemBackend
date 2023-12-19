@@ -2,9 +2,9 @@ spring:
     application:
         name: BankManagementService
     datasource:
-        url: ${DB_URL}
+        url: ${DB_URI}
         username: ${DB_USERNAME}
-        password: ${DB_PASWWORD}
+        password: ${DB_PASSWORD}
         driverClassName: org.h2.Driver
   
     spring.jpa.database-platform: org.hibernate.dialect.H2Dialect
@@ -14,12 +14,13 @@ spring:
     jpa:
         hibernate:
             ddl-auto: update
-        # show-sql: true
+            show-sql: true
+            format-sql: true
     mail:
         host: smtp.gmail.com
-        port: 587
-        username: ${EMAIL_SERVER_USERNAME}
-        password: ${EMAIL_SERVER_PASSWORD}
+        port: ${MAIL_PORT}
+        username: ${MAIL_USERNAME}
+        password: ${MAIL_PASSWORD}
         properties:
             mail:
                 smtp: 
@@ -30,6 +31,8 @@ spring:
 #     level:
 #         root: debug
 
+jwt:
+    secret: ${JWT_SECRET}
 
 
 

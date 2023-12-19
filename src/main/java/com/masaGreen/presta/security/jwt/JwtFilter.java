@@ -60,6 +60,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 {
 
                 String subject= jwtService.getIdNumberFromJWT(bearerToken);
+                //so it can be accessed from request inside the controllers
                 request.setAttribute("idNumber",subject);
                 
                 UserDetails userDetails = customUserDetailsService.loadUserByUsername(subject);

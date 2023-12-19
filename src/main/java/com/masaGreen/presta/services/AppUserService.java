@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -44,6 +45,7 @@ public class AppUserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
   
     public AppUser getAppUserFromServletRequest(HttpServletRequest request) {
         String idNumber = (String) request.getAttribute("idNumber");
@@ -104,13 +106,30 @@ public class AppUserService {
                 () -> new EntityNotFoundException("incorrect validation code"));
         if (!appUser.isVerified()) {
             appUser.setVerified(true);
+            
+            // send them their pin via email
+            // setPin random string + four digits
+            String encrypter = UUID.randomUUID().toString();
+            String partialPin = generateInitialPin();
+            System.out.println(partialPin);
+
+            appUser.setPinEncryption(encrypter);
+            appUser.setPin(passwordEncoder.encode(partialPin + encrypter));
             appUserRepository.save(appUser);
+
+            // emailService.sendPinInfoEmail(appUser.getEmail(), partialPin,
+            // appUser.getFirstName());
+
+        
+            appUserRepository.save(appUser);
+            //email the user pin after verifying
+
             return "user verified successfully";
         }
         return "user has already been verified";
     }
 
-    public LoginResDTO loginByEmailAndIdNUmber(AppUserLoginDTO appUserLoginDTO) {
+    public LoginResDTO loginByIdNumberAndPin(AppUserLoginDTO appUserLoginDTO) {
         AppUser appUser = appUserRepository.findByIdNumber(appUserLoginDTO.idNumber()).orElseThrow(
                 () -> new BadCredentialsException("bad credentials"));
 
@@ -118,26 +137,25 @@ public class AppUserService {
             throw new UnverifiedUserException("must be verified to login");
         }
 
-        if (appUser.getPin() == null) {
-            // send them their pin via email
-            // setPin random string + four digits
-            String encrypter = UUID.randomUUID().toString();
-            String partialPin = generateInitialPin();
+       
 
-            appUser.setPinEncryption(encrypter);
-            appUser.setPin(passwordEncoder.encode(partialPin + encrypter));
-            appUserRepository.save(appUser);
-            // emailService.sendPinInfoEmail(appUser.getEmail(), partialPin,
-            // appUser.getFirstName());
+        UsernamePasswordAuthenticationToken authtoken = new UsernamePasswordAuthenticationToken(appUserLoginDTO.idNumber(),
+                appUserLoginDTO.pin()+appUser.getPinEncryption());
+        try {
+            Authentication authentication = authenticationManager.authenticate(authtoken);
+           
 
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                String token = jwtService.generateToken(appUser.getIdNumber());
+                return new LoginResDTO(appUser.getId(), token, appUser.getFirstName());
+            
+
+            
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new BadCredentialsException("Bad credentials");
         }
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken(appUser.getIdNumber(),
-                appUser.getPin());
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String token = jwtService.generateToken(appUser.getIdNumber());
-
-        return new LoginResDTO(appUser.getId(), token, appUser.getFirstName());
+       
     }
 
     public String changePin(HttpServletRequest request, PinEditDTO pinEditDTO) {

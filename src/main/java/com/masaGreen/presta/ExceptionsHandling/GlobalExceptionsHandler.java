@@ -8,14 +8,15 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.net.ConnectException;
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,8 +40,8 @@ public class GlobalExceptionsHandler {
       
     
 
-    @ExceptionHandler(WrongPinException.class)
-    public ResponseEntity<ExceptionObject> handleWrongPinException(WrongPinException ex){
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ExceptionObject> handleUsernameNotFoundException(UsernameNotFoundException ex){
         ExceptionObject exceptionObject = ExceptionObject.singleMessageException(HttpStatus.BAD_REQUEST.value(), ex.getMessage(),ZonedDateTime.now());
         log.error("exception {}", ex.getMessage());
         return new ResponseEntity<>(exceptionObject, HttpStatus.BAD_REQUEST);
@@ -77,5 +78,13 @@ public class GlobalExceptionsHandler {
         return new ResponseEntity<>(exceptionObject, HttpStatus.BAD_REQUEST);
     }
 
+      @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ExceptionObject> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex){
+        ExceptionObject exceptionObject = ExceptionObject.singleMessageException(HttpStatus.BAD_REQUEST.value(), ex.getMessage(),ZonedDateTime.now());
+        log.error("exception {}", ex.getMessage());
+        return new ResponseEntity<>(exceptionObject, HttpStatus.BAD_REQUEST);
+    }
+
+    
    
 }

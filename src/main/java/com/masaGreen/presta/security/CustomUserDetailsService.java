@@ -26,7 +26,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String idNumber) throws UsernameNotFoundException {
         AppUser appUser = appUserRepository.findByIdNumber(idNumber).orElseThrow(
-                ()-> new EntityNotFoundException("idNumber not registered"));
+                ()-> new UsernameNotFoundException("idNumber not registered"));
         return new User(
                 appUser.getIdNumber(),
                 appUser.getPin(),
