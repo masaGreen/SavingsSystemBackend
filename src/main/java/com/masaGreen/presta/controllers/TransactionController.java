@@ -51,7 +51,7 @@ public class TransactionController {
 
         })
         @GetMapping("/allTransactions-by-AppUser/{idNumber}")
-        private ResponseEntity<List<Transaction>> getAllTransactionsByAppUser(@PathVariable String idNumber) {
+        public ResponseEntity<List<Transaction>> getAllTransactionsByAppUser(@PathVariable String idNumber) {
                 return new ResponseEntity<>(transactionsService.getAllTransactionsByAppUser(idNumber), HttpStatus.OK);
         }
 
@@ -63,7 +63,7 @@ public class TransactionController {
         })
         @GetMapping("/all-transactions")
         @PreAuthorize("hasRole('ROLE_STAFF')")
-        private ResponseEntity<List<Transaction>> getAllTransactions() {
+        public ResponseEntity<List<Transaction>> getAllTransactions() {
                 return new ResponseEntity<>(transactionsService.getAllTransactions(), HttpStatus.OK);
         }
 
@@ -76,7 +76,7 @@ public class TransactionController {
         })
         @GetMapping("/all-transactions-by-accountNumber/{accountNumber}")
         @PreAuthorize("hasRole('ROLE_STAFF')")
-        private ResponseEntity<List<Transaction>> getAllTransactionsByAccountNumber(
+        public ResponseEntity<List<Transaction>> getAllTransactionsByAccountNumber(
                         @PathVariable String accountNumber) {
                 return new ResponseEntity<>(transactionsService.getAllTRansactionsByAccountNumber(accountNumber),
                                 HttpStatus.OK);

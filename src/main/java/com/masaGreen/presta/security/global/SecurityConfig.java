@@ -32,14 +32,15 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
 
-@EnableMethodSecurity(securedEnabled = true)
-@EnableWebSecurity(debug = true)
+@EnableMethodSecurity
+@EnableWebSecurity
 public class SecurityConfig {
 
     
     private  final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     
     private final  CustomUserDetailsService customUserDetailsService;
+
     @Autowired
     @Qualifier("handlerExceptionResolver")
     private  HandlerExceptionResolver handlerExceptionResolver;
@@ -74,7 +75,6 @@ public class SecurityConfig {
 
     }
    
-
 	
 
     @Bean

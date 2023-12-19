@@ -2,9 +2,9 @@ spring:
     application:
         name: BankManagementService
     datasource:
-        url: jdbc:h2:./data/presta
-        username: sa
-        password: password
+        url: ${DB_URI}
+        username: ${DB_USERNAME}
+        password: ${DB_PASSWORD}
         driverClassName: org.h2.Driver
   
     spring.jpa.database-platform: org.hibernate.dialect.H2Dialect
@@ -14,12 +14,16 @@ spring:
     jpa:
         hibernate:
             ddl-auto: update
-        # show-sql: true
+            show-sql: true
+            format-sql: true
+
+liquibase:
+    change-log: "classpath:/db/changelog/db.changelog-master.yaml"
     mail:
         host: smtp.gmail.com
-        port: 587
-        username: muriithidavidmj@gmail.com
-        password: 
+        port: ${MAIL_PORT}
+        username: ${MAIL_USERNAME}
+        password: ${MAIL_PASSWORD}
         properties:
             mail:
                 smtp: 
@@ -30,6 +34,8 @@ spring:
 #     level:
 #         root: debug
 
+jwt:
+    secret: ${JWT_SECRET}
 
 
 

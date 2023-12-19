@@ -52,7 +52,7 @@ public class AccountController {
 
         @GetMapping("/total-accounts-balance")
         @PreAuthorize("hasRole('ROLE_STAFF')")
-        private ResponseEntity<BalanceDTO> getTotalSavingsForAllAppUser() {
+        public ResponseEntity<BalanceDTO> getTotalSavingsForAllAppUser() {
                 return new ResponseEntity<>(accountService.getAllAppUsersTotalSavings(), HttpStatus.OK);
         }
 
@@ -64,7 +64,7 @@ public class AccountController {
 
         })
         @PostMapping("/app-user-balance")
-        private ResponseEntity<BalanceDTO> getTotalSavingsPerAppUser(
+        public ResponseEntity<BalanceDTO> getTotalSavingsPerAppUser(
                         @Valid @Validated @RequestBody BalanceInquiryDTO balanceInquiryDTO) {
                 return new ResponseEntity<>(accountService.getAppUserAccountBalance(balanceInquiryDTO), HttpStatus.OK);
         }

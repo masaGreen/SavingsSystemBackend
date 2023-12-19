@@ -57,11 +57,11 @@ public class AppUserController {
 
     })
     @PostMapping("/login")
-    private ResponseEntity<LoginResDTO> loginAppUser(@RequestBody AppUserLoginDTO appUserLoginDTO){
+    public ResponseEntity<LoginResDTO> loginAppUser(@RequestBody AppUserLoginDTO appUserLoginDTO){
         if(appUserService == null){
                 System.out.println("still not working");
         }
-        return new ResponseEntity<>(appUserService.loginByEmailAndIdNUmber(appUserLoginDTO), HttpStatus.OK);
+        return new ResponseEntity<>(appUserService.loginByIdNumberAndPin(appUserLoginDTO), HttpStatus.OK);
     }
 
     @Operation(summary = "register a new AppUser")
@@ -89,7 +89,7 @@ public class AppUserController {
 
     })
     @GetMapping("/validate-app-user/{validationString}")
-    private ResponseEntity<String> validateAppUserByMail(@PathVariable String validationString ){
+    public ResponseEntity<String> validateAppUserByMail(@PathVariable String validationString ){
         
         return new ResponseEntity<>(appUserService.validateAppUser(validationString), HttpStatus.OK);
     }
@@ -139,7 +139,7 @@ public class AppUserController {
     })
     @GetMapping("/findByIdNumber/{idNumber}")
     @PreAuthorize("hasRole('ROLE_STAFF')")
-    private ResponseEntity<AppUserDTO> findAppUserByIdNumber(@PathVariable String idNumber){
+    public ResponseEntity<AppUserDTO> findAppUserByIdNumber(@PathVariable String idNumber){
         return new ResponseEntity<>(appUserService.findByIdNumber(idNumber), HttpStatus.OK);
     }
 
@@ -154,7 +154,7 @@ public class AppUserController {
 
     })
     @PutMapping("/update-app-user/{idNumber}")
-    private ResponseEntity<String> updateAppUser(@RequestBody @Valid AppUserUpdateDto appUserUpdateDto, @PathVariable String idNumber ){
+    public ResponseEntity<String> updateAppUser(@RequestBody @Valid AppUserUpdateDto appUserUpdateDto, @PathVariable String idNumber ){
 
         return new ResponseEntity<>(appUserService.updateAppUserByIdNumber(idNumber, appUserUpdateDto), HttpStatus.OK);
     }
@@ -170,7 +170,7 @@ public class AppUserController {
     })
     @DeleteMapping("/close-account/{id}")
     @PreAuthorize("hasRole('ROLE_STAFF')")
-    private ResponseEntity<String> deleteAppUser(@PathVariable String id){
+    public ResponseEntity<String> deleteAppUser(@PathVariable String id){
         return new ResponseEntity<>(appUserService.deleteAppUserById(id), HttpStatus.OK);
     }
 

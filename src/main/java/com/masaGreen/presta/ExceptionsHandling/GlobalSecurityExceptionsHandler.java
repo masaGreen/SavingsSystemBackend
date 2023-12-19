@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.masaGreen.presta.ExceptionsHandling.exceptions.UnverifiedUserException;
+import com.masaGreen.presta.ExceptionsHandling.exceptions.WrongPinException;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -27,7 +28,12 @@ public class GlobalSecurityExceptionsHandler {
         log.error("exception {}", ex.getMessage());
         return new ResponseEntity<>(exceptionObject, HttpStatus.UNAUTHORIZED);
     }
-
+     @ExceptionHandler(WrongPinException.class)
+    public ResponseEntity<ExceptionObject> handleWrongPinException(WrongPinException ex){
+        ExceptionObject exceptionObject = ExceptionObject.singleMessageException(HttpStatus.BAD_REQUEST.value(), ex.getMessage(),ZonedDateTime.now());
+        log.error("exception {}", ex.getMessage());
+        return new ResponseEntity<>(exceptionObject, HttpStatus.BAD_REQUEST);
+    }
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ExceptionObject> handleAccessDeniedException(AccessDeniedException ex) {
         ExceptionObject exceptionObject = ExceptionObject.singleMessageException(HttpStatus.FORBIDDEN.value(),
