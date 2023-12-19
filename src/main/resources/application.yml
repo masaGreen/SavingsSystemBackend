@@ -16,6 +16,9 @@ spring:
             ddl-auto: update
             show-sql: true
             format-sql: true
+
+liquibase:
+    change-log: "classpath:/db/changelog/db.changelog-master.yaml"
     mail:
         host: smtp.gmail.com
         port: ${MAIL_PORT}
