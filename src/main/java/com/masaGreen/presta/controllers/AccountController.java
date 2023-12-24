@@ -16,59 +16,57 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/account")
 @RequiredArgsConstructor
-@Tag(name="Accounts" , description="accounts management")
+@Tag(name = "Accounts", description = "accounts management")
 public class AccountController {
 
-    private final AccountService accountService;
-    @Operation(summary = "Register a new account for customer")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Account successfully created",
-                    content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = AccountCreationResDTO.class))}),
-            @ApiResponse(responseCode = "404", description = "customer must be registered to create account or provide valid account type",
-                    content = @Content(examples = @ExampleObject(value = "{'message': 'unregistered customer or invalid account type'}"))),
+        private final AccountService accountService;
 
-    })
-    @PostMapping("/create")
-    public ResponseEntity<AccountCreationResDTO> createAccount(@RequestBody CreateAccountDTO createAccountDTO){
-        
-        return new ResponseEntity<>(accountService.saveAccount(createAccountDTO), HttpStatus.CREATED);
-    }
-    @Operation(summary = "Get total balance for all accounts in the bank")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "balance successfully fetched",
-                    content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = BalanceDTO.class))}),
-
-    })
-
-    @GetMapping("/total-accounts-balance")
-    private ResponseEntity<BalanceDTO> getTotalSavingsForAllCustomer(){
-        return new ResponseEntity<>(accountService.getAllCustomersTotalSavings(), HttpStatus.OK);
-    }
-
-
-
-
-        @Operation(summary = "get balance for a customer particular account")
+        @Operation(summary = "Register a new account for AppUser")
         @ApiResponses(value = {
-                @ApiResponse(responseCode = "200", description = "balance fetched successfully",
-                        content = {@Content(mediaType = "application/json",
-                                schema = @Schema(implementation = BalanceDTO.class))}),
-                @ApiResponse(responseCode = "404", description = "account not found",
-                        content = @Content(examples = @ExampleObject(value = "{'message': 'account not found'}"))),
+                        @ApiResponse(responseCode = "201", description = "Account successfully created", content = {
+                                        @Content(mediaType = "application/json", schema = @Schema(implementation = AccountCreationResDTO.class)) }),
+                        @ApiResponse(responseCode = "404", description = "AppUser must be registered to create account or provide valid account type", content = @Content(examples = @ExampleObject(value = "{'message': 'unregistered AppUser or invalid account type'}"))),
 
         })
-        @PostMapping("/customer-balance")
-        private ResponseEntity<BalanceDTO> getTotalSavingsPerCustomer(@Valid @Validated @RequestBody BalanceInquiryDTO balanceInquiryDTO){
-            return new ResponseEntity<>(accountService.getCustomerAccountBalance(balanceInquiryDTO), HttpStatus.OK);
+        @PostMapping("/create")
+        @PreAuthorize("hasRole('ROLE_STAFF')")
+        public ResponseEntity<AccountCreationResDTO> createAccount(@RequestBody CreateAccountDTO createAccountDTO) {
+                System.out.println(SecurityContextHolder.getContext().getAuthentication().getAuthorities());
+                return new ResponseEntity<>(accountService.saveAccount(createAccountDTO), HttpStatus.CREATED);
         }
 
+        @Operation(summary = "Get total balance for all accounts in the bank")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "balance successfully fetched", content = {
+                                        @Content(mediaType = "application/json", schema = @Schema(implementation = BalanceDTO.class)) }),
+
+        })
+
+        @GetMapping("/total-accounts-balance")
+        @PreAuthorize("hasRole('ROLE_STAFF')")
+        public ResponseEntity<BalanceDTO> getTotalSavingsForAllAppUser() {
+                return new ResponseEntity<>(accountService.getAllAppUsersTotalSavings(), HttpStatus.OK);
+        }
+
+        @Operation(summary = "get balance for a AppUser particular account")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "balance fetched successfully", content = {
+                                        @Content(mediaType = "application/json", schema = @Schema(implementation = BalanceDTO.class)) }),
+                        @ApiResponse(responseCode = "404", description = "account not found", content = @Content(examples = @ExampleObject(value = "{'message': 'account not found'}"))),
+
+        })
+        @PostMapping("/app-user-balance")
+        public ResponseEntity<BalanceDTO> getTotalSavingsPerAppUser(
+                        @Valid @Validated @RequestBody BalanceInquiryDTO balanceInquiryDTO) {
+                return new ResponseEntity<>(accountService.getAppUserAccountBalance(balanceInquiryDTO), HttpStatus.OK);
+        }
 
 }

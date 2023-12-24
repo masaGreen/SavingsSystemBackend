@@ -1,4 +1,4 @@
-package com.masaGreen.presta.dtos.customer;
+package com.masaGreen.presta.dtos.appUser;
 
 
 import jakarta.validation.constraints.Email;
@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CustomerUpdateDto {
+public class AppUserUpdateDto {
     @Pattern(regexp = "^0\\d{9}$", message = "Invalid phone number")
     @NotBlank(message = "phone can't be blank")
     private String phoneNumber;
