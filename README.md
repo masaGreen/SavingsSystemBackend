@@ -53,7 +53,7 @@ for transactions management
 # Main Endpoints (the rest are indicated on the main documentation)
 ```
 /v1/transactions/
-/v1/customer/
+/v1/appUser/
 /v1/savingsproducts/
  ```
 

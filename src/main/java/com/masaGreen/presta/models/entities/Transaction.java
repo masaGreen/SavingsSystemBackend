@@ -34,7 +34,6 @@ public class Transaction extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "account_id")
-    @JsonBackReference
     private Account account;
 
     
