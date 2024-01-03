@@ -1,30 +1,11 @@
 # SavingsSystemBackend
 
 
-
-Docs are out of date, waiting for update dont't rely on them
-
  
 # Overview
 
-This Api provides necessary endpoints that a client needs to manage a savings System.
+This Api provides necessary endpoints that a client needs to manage a savings System. Customers get to register, get accounts, pin and they can choose different accounttypes with different interest rates as well as make deposits and withdrwals as well as check balances.
 
-# postman docs
-for transactions management
-```
-   https://documenter.getpostman.com/view/28253798/2s9YC1WuWj
-
-```
-- for customers management
-```
-  https://documenter.getpostman.com/view/28253798/2s9YC1WuWo
-
-```
-- for savingsProducts management
-```
-  https://documenter.getpostman.com/view/28253798/2s9YC1WuWp
-
-```
 
 # Requirements
 
