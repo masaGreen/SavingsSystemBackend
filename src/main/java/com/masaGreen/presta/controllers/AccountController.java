@@ -22,7 +22,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/account")
+@RequestMapping("/v1/account")
 @RequiredArgsConstructor
 @Tag(name = "Accounts", description = "accounts management")
 public class AccountController {
@@ -39,7 +39,7 @@ public class AccountController {
         @PostMapping("/create")
         @PreAuthorize("hasRole('ROLE_STAFF')")
         public ResponseEntity<AccountCreationResDTO> createAccount(@RequestBody CreateAccountDTO createAccountDTO) {
-                System.out.println(SecurityContextHolder.getContext().getAuthentication().getAuthorities());
+               
                 return new ResponseEntity<>(accountService.saveAccount(createAccountDTO), HttpStatus.CREATED);
         }
 

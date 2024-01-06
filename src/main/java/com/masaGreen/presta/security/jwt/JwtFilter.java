@@ -39,13 +39,12 @@ public class JwtFilter extends OncePerRequestFilter {
     @Autowired
     private  CustomUserDetailsService customUserDetailsService;
     
-    private final HandlerExceptionResolver handlerExceptionResolver;
-    @Autowired
+    private  HandlerExceptionResolver handlerExceptionResolver;
+    
      public JwtFilter(HandlerExceptionResolver handlerExceptionResolver){
         this.handlerExceptionResolver = handlerExceptionResolver;
      }
     
-    Claims claims;
     @Override
     protected void doFilterInternal( HttpServletRequest request,  HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
@@ -60,12 +59,13 @@ public class JwtFilter extends OncePerRequestFilter {
                 {
 
                 String subject= jwtService.getIdNumberFromJWT(bearerToken);
-                //so it can be accessed from request inside the controllers
+                /*
+                 *so it can be accessed from request inside the controllers 
+                 */
+                
                 request.setAttribute("idNumber",subject);
                 
-                UserDetails userDetails = customUserDetailsService.loadUserByUsername(subject);
-                claims = jwtService.extractAllClaims(bearerToken);
-                
+                UserDetails userDetails = customUserDetailsService.loadUserByUsername(subject);                              
                 
                 UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities()

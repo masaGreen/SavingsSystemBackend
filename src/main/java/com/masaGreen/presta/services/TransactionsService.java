@@ -4,6 +4,7 @@ import com.masaGreen.presta.ExceptionsHandling.exceptions.InsufficientFundsExcep
 import com.masaGreen.presta.ExceptionsHandling.exceptions.WrongPinException;
 import com.masaGreen.presta.dtos.transactions.CreateTransactionDTO;
 import com.masaGreen.presta.models.entities.Account;
+import com.masaGreen.presta.models.entities.AppUser;
 import com.masaGreen.presta.models.entities.Transaction;
 import com.masaGreen.presta.models.enums.TransactionMedium;
 import com.masaGreen.presta.models.enums.TransactionType;
@@ -11,10 +12,13 @@ import com.masaGreen.presta.repositories.AccountRepository;
 import com.masaGreen.presta.repositories.TransactionsRepository;
 import com.masaGreen.presta.security.jwt.JwtFilter;
 
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -96,12 +100,30 @@ public class TransactionsService {
       
         return transactionsRepository.findAll();
     }
-
-    public List<Transaction> getAllTransactionsByAppUser(String idNumber) {
+    /*
+     *id logged in can only access its transactions and not for another person unless its staff 
+     */
+    public List<Transaction> getAllTransactionsByAppUser(String idNumber, HttpServletRequest request) {
+        
+        String loggedIdNumber = (String)request.getAttribute("idNumber");
+        if(
+            !loggedIdNumber.equals(idNumber) && SecurityContextHolder.getContext().getAuthentication().getAuthorities().size() == 1
+            ) throw new AccessDeniedException("operation denied");
+            
         return transactionsRepository.findAllTransactionsByAppUserIdNumber(idNumber);
     }
-    public List<Transaction> getAllTRansactionsByAccountNumber(String accountNumber){
-        return transactionsRepository.findAllTransactionsByAccountNumber(accountNumber);
+    public List<Transaction> getAllTRansactionsByAccountNumber(String accountNumber, HttpServletRequest request){
+        if(SecurityContextHolder.getContext().getAuthentication().getAuthorities().size() == 2){
+            return transactionsRepository.findAllTransactionsByAccountNumber(accountNumber);
+        }else{
+            String loggedIdNumber = (String)request.getAttribute("idNumber");
+            Account account = accountRepository.findByAccountNumber(accountNumber).orElseThrow(()-> new EntityNotFoundException("account not found"));
+            if(!account.getAppUser().getIdNumber().equals(loggedIdNumber)) throw new AccessDeniedException("operation not allowed");
+            return transactionsRepository.findAllTransactionsByAccountNumber(accountNumber);
+        }
+         
+
+        
     }
 
 }

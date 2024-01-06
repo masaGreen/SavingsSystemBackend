@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -48,11 +49,12 @@ public class TransactionController {
                         @ApiResponse(responseCode = "200", description = "transactions fetched  successfully", content = {
                                         @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Transaction.class))) }),
                         @ApiResponse(responseCode = "404", description = "AppUser not found", content = @Content(examples = @ExampleObject(value = "{'message': 'AppUser not found'}"))),
+                        @ApiResponse(responseCode = "403", description = "id must match the logged in user unless user is staff", content = @Content(examples = @ExampleObject(value = "{'message': 'Operation not allowed'}"))),
 
         })
-        @GetMapping("/allTransactions-by-AppUser/{idNumber}")
-        public ResponseEntity<List<Transaction>> getAllTransactionsByAppUser(@PathVariable String idNumber) {
-                return new ResponseEntity<>(transactionsService.getAllTransactionsByAppUser(idNumber), HttpStatus.OK);
+        @GetMapping("/all-transactions-by-AppUser/{idNumber}")
+        public ResponseEntity<List<Transaction>> getAllTransactionsByAppUser(@PathVariable String idNumber, HttpServletRequest request) {
+                return new ResponseEntity<>(transactionsService.getAllTransactionsByAppUser(idNumber,request), HttpStatus.OK);
         }
 
         @Operation(summary = "fetches all transactions ")
@@ -75,10 +77,9 @@ public class TransactionController {
 
         })
         @GetMapping("/all-transactions-by-accountNumber/{accountNumber}")
-        @PreAuthorize("hasRole('ROLE_STAFF')")
         public ResponseEntity<List<Transaction>> getAllTransactionsByAccountNumber(
-                        @PathVariable String accountNumber) {
-                return new ResponseEntity<>(transactionsService.getAllTRansactionsByAccountNumber(accountNumber),
+                        @PathVariable String accountNumber, HttpServletRequest request) {
+                return new ResponseEntity<>(transactionsService.getAllTRansactionsByAccountNumber(accountNumber, request),
                                 HttpStatus.OK);
         }
 

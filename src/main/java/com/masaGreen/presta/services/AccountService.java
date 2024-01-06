@@ -40,29 +40,36 @@ public class AccountService {
     @Transactional
     public AccountCreationResDTO saveAccount(CreateAccountDTO createAccountDTO) {
    
-        // check if appUser exists or throw an exception
+        
         AppUser appUser = appUserService.findAppUserById(createAccountDTO.appUserId());
-        // check if appUser already has that accountType or throw an exception
+        /*
+         *  check if appUser already has that accountType or throw an exception
+         */
         AccountType accountType = accountTypeService.findByAccountTypeByName(createAccountDTO.accountType());
 
         String accountNumber = generateAccountNumber(createAccountDTO.branchCode());
 
         Account account = new Account();
         account.setAccountType(accountType);
-
-        // must deposit the min balance for their account type
+        /*
+         * must deposit the min balance for their account type
+         */
         account.setBalance(accountType.getMinimumBalance());
         account.setAppUser(appUser);
         account.setAccountNumber(accountNumber);
         Account createdAccount = accountRepository.save(account);
 
-        // update user accounts
+         
+         /*
+         * update user accounts
+         */
         var userAccounts = appUser.getAccounts();
         userAccounts.add(createdAccount);
         appUser.setAccounts(userAccounts);
         appUserService.save(appUser);
-
-        // update the first transaction by that account as a deposit
+        /*
+         * pdate the first transaction by that account as a deposit
+         */
         Transaction transaction = new Transaction();
         transaction.setAccount(createdAccount);
         transaction.setAmountTransacted(accountType.getMinimumBalance());
@@ -79,16 +86,18 @@ public class AccountService {
     @Transactional
     public BalanceDTO getAppUserAccountBalance(BalanceInquiryDTO balanceInquiryDTO) {
         
-        // check if the appUser exists or throw an exception
+        
         AppUser appUser = appUserService.findAppUserById(balanceInquiryDTO.appUserId());
-        // confirm pin is right
-
+       
         if (!passwordEncoder.matches(
                 (balanceInquiryDTO.pin() + appUser.getPinEncryption()), appUser.getPin())) {
             throw new WrongPinException("invalid pin");
         }
-        // find the specific account of the customer and update its
-        // balance due to charges before sending the balance
+        /*
+         * find the specific account of the customer and update its
+         * balance due to charges before sending the balance
+         */
+        
         Set<Account> accounts = appUser.getAccounts();
         if (accounts.isEmpty())
             throw new EntityNotFoundException("no account found");
@@ -124,6 +133,10 @@ public class AccountService {
 
     }
 
+    /*
+     * Account number is a combination of the branch where account is being created from
+     * and a random int to make nine digits, can always be changed
+     */
     private String generateAccountNumber(String branchCode) {
         int randomInt = new Random().nextInt();
 

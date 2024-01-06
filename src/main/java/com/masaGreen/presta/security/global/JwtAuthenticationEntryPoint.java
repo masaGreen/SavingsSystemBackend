@@ -9,17 +9,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Date;
 
 @Component
 @Slf4j
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-        log.info("unauthorized attempt , you must be logged in");
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED,authException.getMessage());
-        
+        log.info("Denied: {}", authException.getMessage() +" from "+ request.getRequestURI());
+        response.setContentType("application/json;charset=UTF-8");
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.getWriter().write("{\"timeStamp\": \"" + new Date() + "\",\"errorsMessages\": { \"message\": \"Denied: " + authException.getMessage() + "\" },\"code\": " + HttpStatus.UNAUTHORIZED.value() + " }");
     }
 }

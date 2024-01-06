@@ -37,33 +37,14 @@ import java.util.List;
 @ComponentScan(basePackages = "com.masaGreen.presta")
 @RestController
 @RequestMapping("/v1/app-user")
-//@RequiredArgsConstructor
+@RequiredArgsConstructor
 @Tag(name = "AppUsers", description = "Endpoints for managing AppUsers")
 public class AppUserController {
 
-   @Autowired
-    private  AppUserService appUserService;
+   
+    private final AppUserService appUserService;
 
-
-             @org.jetbrains.annotations.NotNull
-             @org.jetbrains.annotations.Contract("_ -> new")
-             @Operation(summary = "login app-user")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "AppUser logged in successfully",
-                    content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = String.class))}),
-            @ApiResponse(responseCode = "401", description = "Bad credentials",
-                    content = @Content(examples = @ExampleObject(value = "{'message': 'Incorrect credentials'}"))),
-
-    })
-    @PostMapping("/login")
-    public ResponseEntity<LoginResDTO> loginAppUser(@RequestBody AppUserLoginDTO appUserLoginDTO){
-        if(appUserService == null){
-                System.out.println("still not working");
-        }
-        return new ResponseEntity<>(appUserService.loginByIdNumberAndPin(appUserLoginDTO), HttpStatus.OK);
-    }
-
+   
     @Operation(summary = "register a new AppUser")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "AppUser registered successfully",
@@ -79,6 +60,21 @@ public class AppUserController {
         return new ResponseEntity<>(appUserService.saveAppUser(createAppUser), HttpStatus.CREATED);
 
     }
+              @Operation(summary = "login app-user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "AppUser logged in successfully",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = String.class))}),
+            @ApiResponse(responseCode = "401", description = "Bad credentials",
+                    content = @Content(examples = @ExampleObject(value = "{'message': 'Incorrect credentials'}"))),
+
+    })
+    @PostMapping("/login")
+    public ResponseEntity<LoginResDTO> loginAppUser(@RequestBody AppUserLoginDTO appUserLoginDTO){
+        
+        return new ResponseEntity<>(appUserService.loginByIdNumberAndPin(appUserLoginDTO), HttpStatus.OK);
+    }
+
         @Operation(summary = "validate app-user by mail")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "AppUser validated successfully",
@@ -93,11 +89,6 @@ public class AppUserController {
         
         return new ResponseEntity<>(appUserService.validateAppUser(validationString), HttpStatus.OK);
     }
-
-
-  
-
-   
 
      @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "AppUser validated successfully",
@@ -120,7 +111,7 @@ public class AppUserController {
     })
     @GetMapping("/all-app-users")
     @PreAuthorize("hasRole('ROLE_STAFF')") 
-    public ResponseEntity<List<AppUser>> getAllAppUsers(){
+    public ResponseEntity<List<AppUserDTO>> getAllAppUsers(){
        
           
         return new ResponseEntity<>(appUserService.getAllAppUsers(), HttpStatus.OK);

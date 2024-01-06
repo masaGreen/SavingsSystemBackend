@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/account-type")
+@RequestMapping("/v1/account-type")
 @RequiredArgsConstructor
 @Tag(name="Account-Type", description = "manages account-types being offered")
 @PreAuthorize("hasRole('ROLE_STAFF')")

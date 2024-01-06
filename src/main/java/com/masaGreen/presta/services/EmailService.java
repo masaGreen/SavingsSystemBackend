@@ -2,13 +2,13 @@ package com.masaGreen.presta.services;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMailMessage;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import com.masaGreen.presta.models.entities.AppUser;
+import com.masaGreen.presta.repositories.AppUserRepository;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -26,6 +26,7 @@ public class EmailService {
 
     private final JavaMailSender javaMailSender;
     private final TemplateEngine templateEngine;
+    private final AppUserRepository appUserRepository;
     
 
     public void sendEmailVerificationRequest(AppUser appUser){
@@ -37,7 +38,9 @@ public class EmailService {
         try {
             sendMailContent(content, appUser.getEmail(), "Verify Email");
         } catch (MessagingException ex) {
-            log.info("error sending verification request email {}", ex.getMessage());
+            appUserRepository.delete(appUser);
+            log.error("error sending verification request email {}", ex.getMessage());
+            
         }
     }
     public void sendPinInfoEmail(String email, String pin, String firstName){
@@ -50,6 +53,7 @@ public class EmailService {
             sendMailContent(content, email, "Customer Pin");
         } catch (MessagingException ex) {
             log.info("error sending pin email {}", ex.getMessage());
+            throw new RuntimeException(ex);
         }
     }
 
