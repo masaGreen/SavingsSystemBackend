@@ -38,7 +38,6 @@ public class EmailService {
         try {
             sendMailContent(content, appUser.getEmail(), "Verify Email");
         } catch (MessagingException ex) {
-            appUserRepository.delete(appUser);
             log.error("error sending verification request email {}", ex.getMessage());
             
         }
