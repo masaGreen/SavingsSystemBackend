@@ -9,8 +9,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 
-
-public interface TransactionsRepository extends JpaRepository<Transaction, String>{
+public interface TransactionsRepository extends JpaRepository<Transaction, String> {
     @Query("""
             SELECT t FROM Transaction t
             JOIN t.account a
@@ -19,11 +18,11 @@ public interface TransactionsRepository extends JpaRepository<Transaction, Strin
                         
             """)
     List<Transaction> findAllTransactionsByAppUserIdNumber(@Param(value = "idNumber") String idNumber);
-    
+
     @Query("""
             SELECT t FROM Transaction t
             JOIN t.account a
             WHERE a.accountNumber  = :accountNumber
             """)
-    List<Transaction> findAllTransactionsByAccountNumber(@Param(value="accountNumber") String accountNumber);
+    List<Transaction> findAllTransactionsByAccountNumber(@Param(value = "accountNumber") String accountNumber);
 }

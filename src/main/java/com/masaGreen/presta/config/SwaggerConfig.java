@@ -11,13 +11,12 @@ import org.springframework.context.annotation.Configuration;
         info = @Info(
                 title = "Banking Management System",
                 description = "OpenApi Docs for Banking Management System",
-                termsOfService="link to terms of service",
+                termsOfService = "link to terms of service",
                 contact = @Contact(email = "davidmachariamj@gmail.com")
         ),
         servers = {
-                @Server(url = "http://localhost:8080", description="Dev Env")
+                @Server(url = "http://localhost:8080", description = "Dev Env")
         }
-
 
 )
 

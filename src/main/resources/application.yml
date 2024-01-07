@@ -18,13 +18,6 @@ spring:
         password: ${DB_PASSWORD}
         driverClassName: org.h2.Driver
 
-    # jpa:
-    #     show-sql: true
-    #     format-sql: true
-    #     hibernate:
-    #         ddl-auto: create-drop
-            
-
 jwt:
     secret: ${JWT_SECRET}
 

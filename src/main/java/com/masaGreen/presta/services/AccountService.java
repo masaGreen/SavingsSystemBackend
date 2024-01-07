@@ -13,12 +13,8 @@ import com.masaGreen.presta.models.enums.TransactionMedium;
 import com.masaGreen.presta.models.enums.TransactionType;
 import com.masaGreen.presta.repositories.AccountRepository;
 import com.masaGreen.presta.repositories.TransactionsRepository;
-
-
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,16 +31,13 @@ public class AccountService {
     private final AccountTypeService accountTypeService;
     private final TransactionsRepository transactionsRepository;
     private final PasswordEncoder passwordEncoder;
-        
+
 
     @Transactional
     public AccountCreationResDTO saveAccount(CreateAccountDTO createAccountDTO) {
-   
-        
+
+
         AppUser appUser = appUserService.findAppUserById(createAccountDTO.appUserId());
-        /*
-         *  check if appUser already has that accountType or throw an exception
-         */
         AccountType accountType = accountTypeService.findByAccountTypeByName(createAccountDTO.accountType());
 
         String accountNumber = generateAccountNumber(createAccountDTO.branchCode());
@@ -52,15 +45,15 @@ public class AccountService {
         Account account = new Account();
         account.setAccountType(accountType);
         /*
-         * must deposit the min balance for their account type
+          must deposit the min balance for their account type
          */
         account.setBalance(accountType.getMinimumBalance());
         account.setAppUser(appUser);
         account.setAccountNumber(accountNumber);
         Account createdAccount = accountRepository.save(account);
 
-         
-         /*
+
+        /*
          * update user accounts
          */
         var userAccounts = appUser.getAccounts();
@@ -68,7 +61,7 @@ public class AccountService {
         appUser.setAccounts(userAccounts);
         appUserService.save(appUser);
         /*
-         * pdate the first transaction by that account as a deposit
+         * update the first transaction by that account as a deposit
          */
         Transaction transaction = new Transaction();
         transaction.setAccount(createdAccount);
@@ -85,10 +78,10 @@ public class AccountService {
 
     @Transactional
     public BalanceDTO getAppUserAccountBalance(BalanceInquiryDTO balanceInquiryDTO) {
-        
-        
+
+
         AppUser appUser = appUserService.findAppUserById(balanceInquiryDTO.appUserId());
-       
+
         if (!passwordEncoder.matches(
                 (balanceInquiryDTO.pin() + appUser.getPinEncryption()), appUser.getPin())) {
             throw new WrongPinException("invalid pin");
@@ -97,7 +90,7 @@ public class AccountService {
          * find the specific account of the customer and update its
          * balance due to charges before sending the balance
          */
-        
+
         Set<Account> accounts = appUser.getAccounts();
         if (accounts.isEmpty())
             throw new EntityNotFoundException("no account found");
@@ -118,22 +111,21 @@ public class AccountService {
         return new BalanceDTO(afterBalanceEnquiryNewAccount.getBalance());
     }
 
- 
 
     public Account findByAccountNumber(String accountNumber) {
-       
+
         return accountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new EntityNotFoundException("account not found"));
 
     }
 
     public BalanceDTO getAllAppUsersTotalSavings() {
-       
+
         return new BalanceDTO(accountRepository.findTotalAppUserSavings());
 
     }
 
-    /*
+    /**
      * Account number is a combination of the branch where account is being created from
      * and a random int to make nine digits, can always be changed
      */

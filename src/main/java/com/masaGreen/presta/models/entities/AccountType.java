@@ -15,10 +15,10 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AccountType extends BaseEntity {
- 
+
     private String name;
     private Double interest;
     private BigDecimal minimumBalance;
-   
+
 }
 

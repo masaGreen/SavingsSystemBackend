@@ -23,11 +23,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/v1/account-type")
 @RequiredArgsConstructor
-@Tag(name="Account-Type", description = "manages account-types being offered")
+@Tag(name = "Account-Type", description = "manages account-types being offered")
 @PreAuthorize("hasRole('ROLE_STAFF')")
 public class AccountTypeController {
-    
+
     private final AccountTypeService accountTypeService;
+
     @Operation(summary = "creates a new account type")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "account-type created  successfully",
@@ -38,7 +39,7 @@ public class AccountTypeController {
                     content = @Content(examples = @ExampleObject(value = "{'message': 'account-type already exists'}"))),
     })
     @PostMapping("/create")
-    public ResponseEntity<String> createAccountType(@RequestBody CreateAccountTypeDTO createAccountTypeDTO){
+    public ResponseEntity<String> createAccountType(@RequestBody CreateAccountTypeDTO createAccountTypeDTO) {
         return new ResponseEntity<>(accountTypeService.createAccountType(createAccountTypeDTO), HttpStatus.CREATED);
     }
 
@@ -47,11 +48,12 @@ public class AccountTypeController {
             @ApiResponse(responseCode = "200", description = "account-types fetched  successfully",
                     content = {@Content(mediaType = "application/json",
                             array = @ArraySchema(schema = @Schema(implementation = AccountType.class)))}),
-              })
+    })
     @GetMapping("/get-all-account-types")
-    public ResponseEntity<List<AccountType>> getAllAccounts(){
-        return new ResponseEntity<>(accountTypeService.fetchAccountTypes(),HttpStatus.OK);
+    public ResponseEntity<List<AccountType>> getAllAccounts() {
+        return new ResponseEntity<>(accountTypeService.fetchAccountTypes(), HttpStatus.OK);
     }
+
     @Operation(summary = "fetch account-type by name")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "account-type fetched successfully",
@@ -62,9 +64,10 @@ public class AccountTypeController {
 
     })
     @GetMapping("/getbyname/{name}")
-    public ResponseEntity<AccountType> getAccountByName(@PathVariable String name){
+    public ResponseEntity<AccountType> getAccountByName(@PathVariable String name) {
         return new ResponseEntity<>(accountTypeService.findByAccountTypeByName(name), HttpStatus.OK);
     }
+
     @Operation(summary = "edit account type")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "account-type edited  successfully",
@@ -75,7 +78,7 @@ public class AccountTypeController {
 
     })
     @PutMapping("/edit-account-type/{name}")
-    public ResponseEntity<String> adjustInterest(@RequestBody EditAccountType editAccountType, @PathVariable String name){
+    public ResponseEntity<String> adjustInterest(@RequestBody EditAccountType editAccountType, @PathVariable String name) {
         return new ResponseEntity<>(accountTypeService.editAccountType(editAccountType, name), HttpStatus.OK);
     }
 }

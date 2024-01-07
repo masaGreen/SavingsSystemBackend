@@ -9,7 +9,7 @@ public record AccountCreationResDTO(
 
         String accountNUmber,
 
-        AccountType acccountType
+        AccountType accountType
 ) {
-    
+
 }

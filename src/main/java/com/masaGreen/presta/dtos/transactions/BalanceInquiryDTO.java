@@ -10,5 +10,5 @@ public record BalanceInquiryDTO(
         @NotEmpty
         String accountNumber,
         String transactionCharge) {
-    
+
 }

@@ -1,6 +1,5 @@
 package com.masaGreen.presta.models.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.masaGreen.presta.models.enums.TransactionMedium;
 import com.masaGreen.presta.models.enums.TransactionType;
 import com.masaGreen.presta.models.superClasess.BaseEntity;
@@ -18,17 +17,14 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Transaction extends BaseEntity {
-
-
     @Column(name = "Amount")
     private BigDecimal amountTransacted;
 
-    
     @Enumerated(EnumType.STRING)
     private TransactionMedium transactionMedium;
 
     private Double transactionCharge;
-    
+
     @Enumerated(EnumType.STRING)
     private TransactionType transactionType;
 
@@ -36,6 +32,6 @@ public class Transaction extends BaseEntity {
     @JoinColumn(name = "account_id")
     private Account account;
 
-    
+
 }
 

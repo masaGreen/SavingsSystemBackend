@@ -4,13 +4,9 @@ import com.masaGreen.presta.dtos.accountType.CreateAccountTypeDTO;
 import com.masaGreen.presta.dtos.accountType.EditAccountType;
 import com.masaGreen.presta.models.entities.AccountType;
 import com.masaGreen.presta.repositories.AccountTypeRepository;
-import com.masaGreen.presta.security.jwt.JwtFilter;
-
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,7 +14,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class AccountTypeService {
-    
+
     private final AccountTypeRepository accountTypeRepository;
 
     public AccountType findByAccountTypeByName(String id) {
@@ -28,7 +24,7 @@ public class AccountTypeService {
     }
 
     public String createAccountType(CreateAccountTypeDTO createAccountTypeDTO) {
-       
+
         // check if the name is already taken else throw exception
         boolean isExistent = accountTypeRepository.existsByName(createAccountTypeDTO.name());
 
@@ -45,12 +41,12 @@ public class AccountTypeService {
     }
 
     public List<AccountType> fetchAccountTypes() {
-       
+
         return accountTypeRepository.findAll();
     }
 
     public String editAccountType(EditAccountType editAccountType, String name) {
-    
+
         // does account exist
         AccountType accountType = accountTypeRepository.findByName(name)
                 .orElseThrow(() -> new EntityNotFoundException("Can't edit account that does not exist"));

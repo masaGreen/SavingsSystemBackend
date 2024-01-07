@@ -1,13 +1,7 @@
 package com.masaGreen.presta.controllers;
 
 
-import com.masaGreen.presta.dtos.appUser.AppUserDTO;
-import com.masaGreen.presta.dtos.appUser.AppUserLoginDTO;
-import com.masaGreen.presta.dtos.appUser.AppUserUpdateDto;
-import com.masaGreen.presta.dtos.appUser.CreateAppUser;
-import com.masaGreen.presta.dtos.appUser.LoginResDTO;
-import com.masaGreen.presta.dtos.appUser.PinEditDTO;
-import com.masaGreen.presta.models.entities.AppUser;
+import com.masaGreen.presta.dtos.appUser.*;
 import com.masaGreen.presta.services.AppUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -17,18 +11,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,10 +30,10 @@ import java.util.List;
 @Tag(name = "AppUsers", description = "Endpoints for managing AppUsers")
 public class AppUserController {
 
-   
+
     private final AppUserService appUserService;
 
-   
+
     @Operation(summary = "register a new AppUser")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "AppUser registered successfully",
@@ -55,12 +44,13 @@ public class AppUserController {
 
     })
     @PostMapping("/create")
-    public ResponseEntity<String> saveAppUser(@RequestBody @Valid CreateAppUser createAppUser){
-        
+    public ResponseEntity<String> saveAppUser(@RequestBody @Valid CreateAppUser createAppUser) {
+
         return new ResponseEntity<>(appUserService.saveAppUser(createAppUser), HttpStatus.CREATED);
 
     }
-              @Operation(summary = "login app-user")
+
+    @Operation(summary = "login app-user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "AppUser logged in successfully",
                     content = {@Content(mediaType = "application/json",
@@ -70,12 +60,12 @@ public class AppUserController {
 
     })
     @PostMapping("/login")
-    public ResponseEntity<LoginResDTO> loginAppUser(@RequestBody AppUserLoginDTO appUserLoginDTO){
-        
+    public ResponseEntity<LoginResDTO> loginAppUser(@RequestBody AppUserLoginDTO appUserLoginDTO) {
+
         return new ResponseEntity<>(appUserService.loginByIdNumberAndPin(appUserLoginDTO), HttpStatus.OK);
     }
 
-        @Operation(summary = "validate app-user by mail")
+    @Operation(summary = "validate app-user by mail")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "AppUser validated successfully",
                     content = {@Content(mediaType = "application/json",
@@ -85,12 +75,27 @@ public class AppUserController {
 
     })
     @GetMapping("/validate-app-user/{validationString}")
-    public ResponseEntity<String> validateAppUserByMail(@PathVariable String validationString ){
-        
+    public ResponseEntity<String> validateAppUserByMail(@PathVariable String validationString) {
+
         return new ResponseEntity<>(appUserService.validateAppUser(validationString), HttpStatus.OK);
     }
 
-     @ApiResponses(value = {
+    @Operation(summary = "resend validation-code")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "validation code sent successfully",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = String.class))}),
+            @ApiResponse(responseCode = "404", description = "AppUser not found",
+                    content = @Content(examples = @ExampleObject(value = "{'message': 'AppUser not found'}"))),
+
+    })
+    @GetMapping("/validate-app-user/{email}")
+    public ResponseEntity<String> resendValidationCode(@PathVariable String email) {
+
+        return new ResponseEntity<>(appUserService.validateAppUser(email), HttpStatus.OK);
+    }
+
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "AppUser validated successfully",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(implementation = String.class))}),
@@ -99,24 +104,23 @@ public class AppUserController {
 
     })
     @PostMapping("/change-pin")
-    public ResponseEntity<String> changePin( @RequestBody @Valid @Validated PinEditDTO pinEditDTO, HttpServletRequest request){
-        return new ResponseEntity<>(appUserService.changePin(request,pinEditDTO), HttpStatus.OK);
-    } 
+    public ResponseEntity<String> changePin(@RequestBody @Valid @Validated PinEditDTO pinEditDTO, HttpServletRequest request) {
+        return new ResponseEntity<>(appUserService.changePin(request, pinEditDTO), HttpStatus.OK);
+    }
 
-     @Operation(summary = "fetch all AppUsers")
+    @Operation(summary = "fetch all AppUsers")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "AppUsers fetched successfully",
                     content = {@Content(mediaType = "application/json",
-                            array = @ArraySchema( schema = @Schema(implementation = AppUserDTO.class)))})
+                            array = @ArraySchema(schema = @Schema(implementation = AppUserDTO.class)))})
     })
     @GetMapping("/all-app-users")
-    @PreAuthorize("hasRole('ROLE_STAFF')") 
-    public ResponseEntity<List<AppUserDTO>> getAllAppUsers(){
-       
-          
+    @PreAuthorize("hasRole('ROLE_STAFF')")
+    public ResponseEntity<List<AppUserDTO>> getAllAppUsers() {
+
+
         return new ResponseEntity<>(appUserService.getAllAppUsers(), HttpStatus.OK);
     }
-
 
 
     @Operation(summary = "fetch AppUser by id-number")
@@ -130,7 +134,7 @@ public class AppUserController {
     })
     @GetMapping("/findByIdNumber/{idNumber}")
     @PreAuthorize("hasRole('ROLE_STAFF')")
-    public ResponseEntity<AppUserDTO> findAppUserByIdNumber(@PathVariable String idNumber){
+    public ResponseEntity<AppUserDTO> findAppUserByIdNumber(@PathVariable String idNumber) {
         return new ResponseEntity<>(appUserService.findByIdNumber(idNumber), HttpStatus.OK);
     }
 
@@ -145,7 +149,7 @@ public class AppUserController {
 
     })
     @PutMapping("/update-app-user/{idNumber}")
-    public ResponseEntity<String> updateAppUser(@RequestBody @Valid AppUserUpdateDto appUserUpdateDto, @PathVariable String idNumber ){
+    public ResponseEntity<String> updateAppUser(@RequestBody @Valid AppUserUpdateDto appUserUpdateDto, @PathVariable String idNumber) {
 
         return new ResponseEntity<>(appUserService.updateAppUserByIdNumber(idNumber, appUserUpdateDto), HttpStatus.OK);
     }
@@ -161,7 +165,7 @@ public class AppUserController {
     })
     @DeleteMapping("/close-account/{id}")
     @PreAuthorize("hasRole('ROLE_STAFF')")
-    public ResponseEntity<String> deleteAppUser(@PathVariable String id){
+    public ResponseEntity<String> deleteAppUser(@PathVariable String id) {
         return new ResponseEntity<>(appUserService.deleteAppUserById(id), HttpStatus.OK);
     }
 

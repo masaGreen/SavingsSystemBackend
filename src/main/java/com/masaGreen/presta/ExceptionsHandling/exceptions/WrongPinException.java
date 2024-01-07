@@ -1,8 +1,8 @@
 package com.masaGreen.presta.ExceptionsHandling.exceptions;
 
-public class WrongPinException extends RuntimeException{
+public class WrongPinException extends RuntimeException {
 
-    public WrongPinException(String message){
+    public WrongPinException(String message) {
         super(message);
     }
 }

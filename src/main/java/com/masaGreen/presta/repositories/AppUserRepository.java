@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface AppUserRepository extends JpaRepository<AppUser,String>{
+public interface AppUserRepository extends JpaRepository<AppUser, String> {
 
     boolean existsByIdNumber(String idNumber);
 
@@ -16,5 +16,5 @@ public interface AppUserRepository extends JpaRepository<AppUser,String>{
 
     Optional<AppUser> findByValidationString(String code);
 
-
+    Optional<AppUser> findByEmail(String email);
 }

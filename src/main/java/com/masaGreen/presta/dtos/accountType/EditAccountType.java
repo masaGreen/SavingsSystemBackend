@@ -6,5 +6,5 @@ public record EditAccountType(
         @NotProfane
         String name,
         double interest) {
-    
+
 }

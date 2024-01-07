@@ -10,5 +10,5 @@ public interface AccountTypeRepository extends JpaRepository<AccountType, String
     Optional<AccountType> findByName(String id);
 
     boolean existsByName(String name);
-    
+
 }

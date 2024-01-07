@@ -25,11 +25,11 @@ public class BaseEntity {
     private Instant updatedAt;
 
     @PrePersist
-    private void generate(){
-        if(id == null){
+    private void generate() {
+        if (id == null) {
             id = UUID.randomUUID().toString();
         }
-        if(createdAt ==  null){
+        if (createdAt == null) {
             createdAt = Instant.now();
         }
     }

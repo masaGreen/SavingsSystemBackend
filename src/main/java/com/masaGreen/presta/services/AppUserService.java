@@ -1,26 +1,18 @@
 package com.masaGreen.presta.services;
 
-import com.masaGreen.presta.dtos.appUser.CreateAppUser;
-import com.masaGreen.presta.dtos.appUser.LoginResDTO;
-import com.masaGreen.presta.dtos.appUser.PinEditDTO;
 import com.masaGreen.presta.ExceptionsHandling.exceptions.UnverifiedUserException;
-import com.masaGreen.presta.dtos.appUser.AppUserDTO;
-import com.masaGreen.presta.dtos.appUser.AppUserLoginDTO;
-import com.masaGreen.presta.dtos.appUser.AppUserUpdateDto;
+import com.masaGreen.presta.dtos.appUser.*;
 import com.masaGreen.presta.models.entities.AppUser;
 import com.masaGreen.presta.models.entities.Role;
 import com.masaGreen.presta.repositories.AppUserRepository;
 import com.masaGreen.presta.repositories.RoleRepository;
-import com.masaGreen.presta.security.jwt.JwtFilter;
 import com.masaGreen.presta.security.jwt.JwtService;
-
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -31,7 +23,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
-import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -50,7 +41,7 @@ public class AppUserService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
-  
+
     public AppUser getAppUserFromServletRequest(HttpServletRequest request) {
         String idNumber = (String) request.getAttribute("idNumber");
         if (idNumber == null)
@@ -75,34 +66,34 @@ public class AppUserService {
             appUser.setPhoneNumber(createAppUser.phoneNumber());
             appUser.setIdNumber(createAppUser.idNumber());
             appUser.setEmail(createAppUser.email());
-            
+
             if (createAppUser.roles() != null) {
                 Set<Role> newRoles = createAppUser.roles()
-                                                .stream()
-                                                .map(s -> new Role(s))
-                                                .collect(Collectors.toSet());
-                
+                        .stream()
+                        .map(s -> new Role(s))
+                        .collect(Collectors.toSet());
+
                 newRoles.addAll(addDefaultRole());
                 appUser.setRoles(newRoles);
                 saveNewRoles(newRoles);
 
-            }else{
+            } else {
                 appUser.setRoles(addDefaultRole());
             }
 
-            String validationString = UUID.randomUUID().toString().substring(1,5);
+            String validationString = UUID.randomUUID().toString().substring(1, 5);
             appUser.setValidationString(validationString);
             appUser.setVerified(false);
 
             AppUser savedUser = appUserRepository.save(appUser);
 
-          
-            CompletableFuture.runAsync(()->emailService.sendEmailVerificationRequest(savedUser))
-            .exceptionally(exception -> {
-                log.error("error sending mail {}", exception.getMessage());
-                return null;
-            });
-            
+
+            CompletableFuture.runAsync(() -> emailService.sendEmailVerificationRequest(savedUser))
+                    .exceptionally(exception -> {
+                        log.error("error sending mail {}", exception.getMessage());
+                        return null;
+                    });
+
             return "AppUser saved successfully";
 
         } else {
@@ -117,26 +108,33 @@ public class AppUserService {
         if (!appUser.isVerified()) {
             appUser.setVerified(true);
 
-            /*
-             * send them their pin via email
-             * setPin random string + four digits
-             */
-            
-            
             String encrypter = UUID.randomUUID().toString();
             String partialPin = generateInitialPin();
-            
+
             appUser.setPinEncryption(encrypter);
             appUser.setPin(passwordEncoder.encode(partialPin + encrypter));
             appUserRepository.save(appUser);
-                               
+
             //email the user pin after verifying
             emailService.sendPinInfoEmail(appUser.getEmail(), partialPin,
-            appUser.getFirstName());
+                    appUser.getFirstName());
 
             return "user verified successfully";
         }
         return "user has already been verified";
+    }
+    public String resendValidationCode(String email){
+
+        var user = appUserRepository.findByEmail(email).orElseThrow(
+                ()-> new EntityNotFoundException("User not registered")
+        );
+        CompletableFuture.runAsync(() -> emailService.sendEmailVerificationRequest(user))
+                .exceptionally(exception -> {
+                    log.error("error sending mail {}", exception.getMessage());
+                    return null;
+                });
+        return "validation code resent successfully";
+
     }
 
     public LoginResDTO loginByIdNumberAndPin(AppUserLoginDTO appUserLoginDTO) {
@@ -147,25 +145,23 @@ public class AppUserService {
             throw new UnverifiedUserException("must be verified to login");
         }
 
-       
 
         UsernamePasswordAuthenticationToken authtoken = new UsernamePasswordAuthenticationToken(appUserLoginDTO.idNumber(),
-                appUserLoginDTO.pin()+appUser.getPinEncryption());
+                appUserLoginDTO.pin() + appUser.getPinEncryption());
         try {
             Authentication authentication = authenticationManager.authenticate(authtoken);
-           
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                String token = jwtService.generateToken(appUser.getIdNumber());
-                return new LoginResDTO(appUser.getId(), token, appUser.getFirstName());
-            
 
-            
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String token = jwtService.generateToken(appUser.getIdNumber());
+            return new LoginResDTO(appUser.getId(), token, appUser.getFirstName());
+
+
         } catch (Exception e) {
             System.out.println(e.getMessage());
             throw new BadCredentialsException("Bad credentials");
         }
-       
+
     }
 
     public String changePin(HttpServletRequest request, PinEditDTO pinEditDTO) {
@@ -179,10 +175,9 @@ public class AppUserService {
     }
 
     public List<AppUserDTO> getAllAppUsers() {
-        
+
         return appUserRepository.findAll().stream().map(AppUserDTO::new).toList();
 
-     
 
     }
 
@@ -190,12 +185,12 @@ public class AppUserService {
         // exists or throw error
         AppUser appUser = appUserRepository.findByIdNumber(idNumber)
                 .orElseThrow(() -> new EntityNotFoundException("AppUser not found"));
-        if (appUserUpdateDto.getEmail() != null && !appUserUpdateDto.getEmail().equals(appUser.getEmail())) {
-            appUser.setEmail(appUserUpdateDto.getEmail());
+        if (appUserUpdateDto.email() != null && !appUserUpdateDto.email().equals(appUser.getEmail())) {
+            appUser.setEmail(appUserUpdateDto.email());
         }
-        if (appUserUpdateDto.getPhoneNumber() != null
-                && !appUser.getPhoneNumber().equals(appUserUpdateDto.getPhoneNumber())) {
-            appUser.setPhoneNumber(appUserUpdateDto.getPhoneNumber());
+        if (appUserUpdateDto.phoneNumber() != null
+                && !appUser.getPhoneNumber().equals(appUserUpdateDto.phoneNumber())) {
+            appUser.setPhoneNumber(appUserUpdateDto.phoneNumber());
         }
 
         appUserRepository.save(appUser);
@@ -209,8 +204,8 @@ public class AppUserService {
         return new AppUserDTO(AppUser);
     }
 
-    public AppUser save(AppUser appUser) {
-        return appUserRepository.save(appUser);
+    public void save(AppUser appUser) {
+        appUserRepository.save(appUser);
     }
 
     @Transactional
@@ -218,7 +213,7 @@ public class AppUserService {
         // check user permissions
         appUserRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("AppUser by %s not found", id)));
-       
+
         /*
          *  check if the AppUser has credit and process by the set out regulations before
          *  closing account
@@ -256,11 +251,10 @@ public class AppUserService {
     }
 
     public void saveNewRoles(Set<Role> roles) {
-      
-        
 
-        List<Role> existingRoles =roleRepository.findAll();
-       
+
+        List<Role> existingRoles = roleRepository.findAll();
+
         Set<Role> rolesSet = new HashSet<>(existingRoles);
         roles.removeAll(rolesSet);
 
